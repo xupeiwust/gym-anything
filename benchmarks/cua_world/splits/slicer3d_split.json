@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/slicer3d_env",
+  "env_folder": "examples/slicer3d_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "adjust_lung_window",
@@ -214,5 +214,10 @@
     "vertebral_fracture_assessment",
     "visceral_fat_quantification",
     "volume_rendering_bone"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "brain_parenchymal_fraction"
+    ]
+  }
 }

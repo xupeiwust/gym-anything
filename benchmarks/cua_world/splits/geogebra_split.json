@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/geogebra_env",
+  "env_folder": "examples/geogebra_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "3d_solid_revolution_visualization",
@@ -76,5 +76,10 @@
     "unit_circle_trig_explorer",
     "viviani_theorem_demo",
     "wiper_mechanism_4bar"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "tensile_ramberg_osgood_yield"
+    ]
+  }
 }

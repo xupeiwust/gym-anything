@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/active_inspire_env",
+  "env_folder": "examples/active_inspire_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_text_annotation",

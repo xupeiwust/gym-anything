@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/dbeaver_env",
+  "env_folder": "examples/dbeaver_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "airport_schema_normalization",
@@ -81,5 +81,10 @@
     "nyc_311_chronic_noise",
     "run_sql_query",
     "web_log_forensics"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "chinook_revenue_reconciliation"
+    ]
+  }
 }

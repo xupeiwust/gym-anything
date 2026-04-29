@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/canvas_lms_env",
+  "env_folder": "examples/canvas_lms_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "bio101_final_exam_config",
@@ -7,5 +7,10 @@
   ],
   "test_tasks": [
     "span101_oral_exam_scheduler"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "bio201_outcomes_assessment_migration"
+    ]
+  }
 }

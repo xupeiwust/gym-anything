@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/android_studio_env",
+  "env_folder": "examples/android_studio_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_app_widget",
@@ -77,5 +77,10 @@
     "remediate_accessibility_violations",
     "resolve_merge_conflicts",
     "secure_api_key_management"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "complete_offline_caching_feature"
+    ]
+  }
 }

@@ -1,26 +1,36 @@
 {
-  "all_tasks": [
-    "add_website",
-    "analyst_user_access",
-    "configure_goal",
+  "env_folder": "examples/matomo_env",
+  "train_ratio": 0.8,
+  "train_tasks": [
+    "configure_data_retention",
+    "configure_global_defaults",
+    "configure_trusted_hosts",
+    "create_audience_segments",
+    "create_campaign_annotations",
+    "create_custom_dashboard",
     "custom_dimensions_setup",
+    "enable_legacy_utm_tracking",
+    "export_visitors_api",
     "fix_regional_sites",
-    "segment_scheduled_report",
-    "spec_based_goals",
-    "view_visitors_dashboard"
+    "fix_verify_tracking",
+    "generate_embedded_widget_code",
+    "harden_airgapped_network",
+    "implement_cross_domain_tracking",
+    "implement_mtm_cta_tracking",
+    "implement_mtm_heartbeat",
+    "import_server_logs",
+    "provision_dashboard_widget_access"
   ],
-  "env_folder": "benchmarks/cua_world/environments/matomo_env",
   "test_tasks": [
-    "segment_scheduled_report",
-    "fix_regional_sites",
-    "analyst_user_access",
-    "custom_dimensions_setup",
+    "investigate_and_block_spam_traffic",
+    "normalize_url_reporting",
+    "perform_gdpr_erasure_request",
+    "setup_tag_manager",
     "spec_based_goals"
   ],
-  "train_ratio": 0.375,
-  "train_tasks": [
-    "add_website",
-    "configure_goal",
-    "view_visitors_dashboard"
-  ]
+  "additional_splits": {
+    "long_horizon": [
+      "complete_partial_deployment"
+    ]
+  }
 }

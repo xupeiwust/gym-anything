@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/jitsi_meet_env",
+  "env_folder": "examples/jitsi_meet_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "adjust_video_quality",
@@ -80,5 +80,10 @@
     "share_youtube_video",
     "url_param_meeting_config",
     "verify_auto_reconnection"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "secure_conference_deployment"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/wireshark_env",
+  "env_folder": "examples/wireshark_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "analyze_expert_info",
@@ -58,5 +58,10 @@
     "tls_handshake_audit",
     "ttl_os_fingerprinting",
     "voip_call_quality_analysis"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "web_app_breach_investigation"
+    ]
+  }
 }

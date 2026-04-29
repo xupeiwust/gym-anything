@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/qgis_env",
+  "env_folder": "examples/qgis_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "air_quality_monitor_coverage",
@@ -80,5 +80,10 @@
     "urban_park_coverage_equity",
     "variable_distance_buffer_zones",
     "viewshed_fire_lookout_siting"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "emergency_medical_accessibility"
+    ]
+  }
 }

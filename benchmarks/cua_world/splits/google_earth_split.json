@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/google_earth_env",
+  "env_folder": "examples/google_earth_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "airport_flight_path",
@@ -109,5 +109,10 @@
     "wildlife_corridor_crossing",
     "wind_turbine_spacing",
     "yellowstone_kml_import"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "nile_agricultural_survey"
+    ]
+  }
 }

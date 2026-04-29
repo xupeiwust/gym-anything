@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/diagrams_net_env",
+  "env_folder": "examples/diagrams_net_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "agile_user_story_mapping",
@@ -79,5 +79,10 @@
     "wardley_map_cloud_migration",
     "warehouse_layout_optimization",
     "wifi_coverage_heatmap_planning"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "microservices_outage_rca"
+    ]
+  }
 }

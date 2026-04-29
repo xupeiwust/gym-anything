@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/fiji_env",
+  "env_folder": "examples/fiji_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "3d_brain_structure_volumetry",
@@ -61,5 +61,10 @@
     "voronoi_territory_analysis",
     "worm_straighten_morphometry",
     "z_stack_projection"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "confocal_multichannel_cell_pipeline"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/apache_openoffice_env",
+  "env_folder": "examples/apache_openoffice_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "academic_peer_review",
@@ -80,5 +80,10 @@
     "trifold_brochure_layout",
     "uspto_patent_format",
     "vendor_evaluation_report"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "quarterly_financial_review_compile"
+    ]
+  }
 }

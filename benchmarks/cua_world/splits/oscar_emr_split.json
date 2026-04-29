@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/oscar_emr_env",
+  "env_folder": "examples/oscar_emr_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_allergy",
@@ -69,5 +69,10 @@
     "update_vaccine_inventory",
     "upload_document",
     "write_consultation_request"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "annual_diabetic_review"
+    ]
+  }
 }

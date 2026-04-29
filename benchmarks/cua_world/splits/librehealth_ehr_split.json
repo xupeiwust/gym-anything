@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/librehealth_ehr_env",
+  "env_folder": "examples/librehealth_ehr_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_address_book_entry",
@@ -46,5 +46,10 @@
     "update_hipaa_permissions",
     "update_patient_demographics",
     "write_prescription"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "implement_lab_workflow_and_process_patient"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/librecad_env",
+  "env_folder": "examples/librecad_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "ada_ramp_plan",
@@ -84,5 +84,10 @@
     "tote_bag_pattern",
     "truss_bridge_elevation",
     "water_well_section"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "residential_floor_plan"
+    ]
+  }
 }

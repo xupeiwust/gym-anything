@@ -17,7 +17,7 @@ Gym-Anything lets you test AI agents on real software — browsers, IDEs, medica
 # 1. Install (we recommend uv: https://docs.astral.sh/uv/)
 uv venv --python 3.12
 source .venv/bin/activate
-uv pip install -e .[all]
+uv pip install -e ".[all]"
 
 # 2. Check what's available on your machine, and help you set up the rest.
 gym-anything doctor

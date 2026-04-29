@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/emoncms_env",
+  "env_folder": "examples/emoncms_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "access_admin_system_info",
@@ -58,5 +58,10 @@
     "update_account_settings",
     "update_feed_tags",
     "view_feed_graph"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "configure_bidirectional_metering"
+    ]
+  }
 }

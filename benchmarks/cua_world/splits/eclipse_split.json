@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/eclipse_env",
+  "env_folder": "examples/eclipse_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_exception_handling",
@@ -73,5 +73,10 @@
     "security_vulnerability_remediation",
     "setup_linked_resources",
     "split_monolithic_file"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "debug_fix_clinical_pipeline"
+    ]
+  }
 }

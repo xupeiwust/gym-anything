@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/bahmni_env",
+  "env_folder": "examples/bahmni_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_concept_answer",
@@ -71,5 +71,10 @@
     "update_patient_occupation",
     "upload_patient_document",
     "void_duplicate_encounter"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "postop_infection_management"
+    ]
+  }
 }

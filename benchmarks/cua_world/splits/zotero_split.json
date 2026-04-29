@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/zotero_env",
+  "env_folder": "examples/zotero_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_isbn_to_books",
@@ -76,5 +76,10 @@
     "trash_irrelevant_items",
     "triage_distributed_systems_papers",
     "update_preprints_to_proceedings"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "systematic_review_preparation"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/ekylibre_env",
+  "env_folder": "examples/ekylibre_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_farm_equipment",
@@ -31,5 +31,10 @@
     "register_supplier_credit_note",
     "register_worker",
     "report_crop_incident"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "equipment_acquisition_full_cycle"
+    ]
+  }
 }

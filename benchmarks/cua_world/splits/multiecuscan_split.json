@@ -15,5 +15,10 @@
     "engine_fault_diagnosis",
     "multi_system_scan",
     "parameter_monitoring_export"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "post_repair_qa_cross_reference_audit"
+    ]
+  }
 }

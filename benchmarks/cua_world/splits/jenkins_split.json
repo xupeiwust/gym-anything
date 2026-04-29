@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/jenkins_env",
+  "env_folder": "examples/jenkins_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "annotate_pin_release_build",
@@ -39,5 +39,10 @@
     "script_console_audit",
     "tag_first_failure_build",
     "trigger_build"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "migrate_freestyle_to_pipeline"
+    ]
+  }
 }

@@ -295,5 +295,10 @@
     "vertical_mirror",
     "vignette",
     "wind_effect"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "perspective_painting_extraction"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/attendhrm_env",
+  "env_folder": "examples/attendhrm_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_branch",
@@ -23,5 +23,10 @@
     "q4_compliance_data_fix",
     "regularize_attendance_on_duty",
     "update_employee_visa_details"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "new_branch_office_setup"
+    ]
+  }
 }

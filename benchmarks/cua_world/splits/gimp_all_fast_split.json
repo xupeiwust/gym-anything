@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/gimp_env_all_fast",
+  "env_folder": "examples/gimp_env_all_fast",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_border",
@@ -148,5 +148,10 @@
     "tile_seamless",
     "vertical_mirror",
     "wind_effect"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "perspective_painting_extraction"
+    ]
+  }
 }

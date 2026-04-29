@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/epi_info_env",
+  "env_folder": "examples/epi_info_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "aggregate_attack_rates",
@@ -63,5 +63,10 @@
     "stratified_mh_analysis",
     "summarize_cases_by_pathogen",
     "timelapse_map_outbreak"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "investigate_waterborne_outbreak"
+    ]
+  }
 }

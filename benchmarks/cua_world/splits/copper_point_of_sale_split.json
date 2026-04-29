@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/copper_point_of_sale_env",
+  "env_folder": "examples/copper_point_of_sale_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_customer",
@@ -43,5 +43,10 @@
     "shift_end_reconciliation",
     "split_payment_sale",
     "update_inventory_pricing"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "quarterly_inventory_reconciliation"
+    ]
+  }
 }

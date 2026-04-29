@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/aerobridge_env",
+  "env_folder": "examples/aerobridge_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_admin_flight_count",
@@ -51,5 +51,10 @@
     "sql_fleet_cross_reference_report",
     "update_operator_authorizations",
     "visualize_flight_trends"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "onboard_new_operator_fleet"
+    ]
+  }
 }

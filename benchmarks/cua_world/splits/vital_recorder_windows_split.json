@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/vital_recorder_windows_env",
+  "env_folder": "examples/vital_recorder_windows_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_parameter_tracks",
@@ -38,5 +38,10 @@
     "switch_monitor_mode",
     "verify_gui_api_hr_peak",
     "volatile_anesthetic_case_inventory"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "mandm_conference_case_review"
+    ]
+  }
 }

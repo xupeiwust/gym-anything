@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/bluemail_env",
+  "env_folder": "examples/bluemail_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "confidential_project_sorting_by_codename",
@@ -23,5 +23,10 @@
     "stakeholder_briefing_synthesis",
     "trash_recovery",
     "vendor_patch_escalation"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "comprehensive_inbox_triage_and_report"
+    ]
+  }
 }

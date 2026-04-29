@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/farmos_field_kit_env",
+  "env_folder": "examples/farmos_field_kit_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "change_log_type_to_observation",
@@ -27,5 +27,10 @@
     "record_yield_comparison_harvest",
     "spring_field_operations_log",
     "toggle_location_sharing"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "spray_day_audit_reconciliation"
+    ]
+  }
 }

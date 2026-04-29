@@ -1,5 +1,7 @@
 {
-  "all_tasks": [
+  "env_folder": "examples/gvsig_desktop_env",
+  "train_ratio": 0.8,
+  "train_tasks": [
     "add_wms_basemap_layer",
     "add_xy_coordinates",
     "apply_pseudocolor_to_raster",
@@ -58,21 +60,22 @@
     "join_table_to_layer",
     "label_layer_by_field",
     "load_csv_as_event_layer",
+    "open_attribute_table",
+    "open_vector_layer",
+    "repair_and_reproject_layer",
+    "reproject_layer_to_mercator"
+  ],
+  "test_tasks": [
     "measure_intercity_distances",
     "merge_country_features",
     "merge_vector_layers",
-    "open_attribute_table",
-    "open_vector_layer",
     "organize_project_layer_groups",
     "proportional_symbols_cities",
     "remove_invalid_features",
-    "repair_and_reproject_layer",
-    "reproject_layer_to_mercator",
     "reproject_rivers_utm33n",
     "reproject_view_crs",
     "river_border_crossings",
     "save_project_to_file",
-    "select_by_attribute_query",
     "select_by_location_export",
     "simplify_country_geometries",
     "smooth_river_geometries",
@@ -80,20 +83,9 @@
     "summarize_gdp_by_continent",
     "unique_values_symbology_continent"
   ],
-  "env_folder": "benchmarks/cua_world/environments/gvsig_desktop_env",
-  "test_tasks": [
-    "reproject_rivers_utm33n",
-    "field_calc_gdp_percapita",
-    "filter_south_america_major",
-    "buffer_world_capitals",
-    "dissolve_by_continent"
-  ],
-  "train_ratio": 0.063291,
-  "train_tasks": [
-    "open_vector_layer",
-    "change_layer_symbology",
-    "label_layer_by_field",
-    "open_attribute_table",
-    "save_project_to_file"
-  ]
+  "additional_splits": {
+    "long_horizon": [
+      "vulnerability_map_remote_communities"
+    ]
+  }
 }

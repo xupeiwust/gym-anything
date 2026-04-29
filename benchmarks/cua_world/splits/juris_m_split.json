@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/juris_m_env",
+  "env_folder": "examples/juris_m_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_artwork_reference",
@@ -79,5 +79,10 @@
     "standardize_journal_abbreviations",
     "systematic_review_tagging",
     "tag_cases_by_doctrine"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "journal_submission_library_audit"
+    ]
+  }
 }

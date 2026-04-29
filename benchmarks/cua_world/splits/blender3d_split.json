@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/blender3d_env",
+  "env_folder": "examples/blender3d_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_sphere_to_scene",
@@ -58,5 +58,10 @@
     "volumetric_spotlight_scene",
     "vr_panorama_render_setup",
     "vse_rough_cut_assembly"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "procedural_rust_material"
+    ]
+  }
 }

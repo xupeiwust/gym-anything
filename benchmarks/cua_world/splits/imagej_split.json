@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/imagej_env",
+  "env_folder": "examples/imagej_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "accessible_color_remapping",
@@ -74,5 +74,10 @@
     "z_axis_nuclear_depth",
     "zprojection_comparison",
     "zstack_depth_profiling"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "mitotic_spindle_dynamics"
+    ]
+  }
 }

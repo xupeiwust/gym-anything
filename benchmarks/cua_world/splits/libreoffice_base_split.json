@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/libreoffice_base_env",
+  "env_folder": "examples/libreoffice_base_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_constraints",
@@ -82,5 +82,10 @@
     "standardize_artist_names",
     "transfer_region_accounts",
     "update_customer_info"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "fiscal_reconciliation_and_regional_analysis"
+    ]
+  }
 }

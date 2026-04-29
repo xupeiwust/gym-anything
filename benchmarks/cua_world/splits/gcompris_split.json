@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/gcompris_env",
+  "env_folder": "examples/gcompris_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "algebra_addition",
@@ -79,5 +79,10 @@
     "vector_drawing_composition",
     "water_cycle_restoration",
     "wolf_goat_cabbage_logic"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "fifteen_puzzle_solve"
+    ]
+  }
 }

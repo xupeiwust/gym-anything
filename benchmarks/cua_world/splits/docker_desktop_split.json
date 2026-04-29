@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/docker_desktop_env",
+  "env_folder": "examples/docker_desktop_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "broken_compose_diagnosis",
@@ -45,5 +45,10 @@
     "secure_socket_proxy_nginx",
     "sidecar_packet_capture_security",
     "stop_container"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "diagnose_broken_microservices_stack"
+    ]
+  }
 }

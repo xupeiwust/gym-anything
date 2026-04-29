@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/azure_devops_server_env",
+  "env_folder": "examples/azure_devops_server_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "address_pr_feedback",
@@ -54,5 +54,10 @@
     "visualize_bug_load_distribution",
     "web_code_edit_with_work_item_linking",
     "work_item_triage_and_query"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "release_notes_preparation"
+    ]
+  }
 }

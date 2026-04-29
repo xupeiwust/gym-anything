@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/blue_sky_plan_env",
+  "env_folder": "examples/blue_sky_plan_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "analyze_airway_patency",
@@ -24,5 +24,10 @@
     "reorient_scan_volume",
     "resolve_implant_proximity",
     "save_diagnostic_views"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "qa_review_implant_plan"
+    ]
+  }
 }

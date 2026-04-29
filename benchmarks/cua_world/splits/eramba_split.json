@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/eramba_env",
+  "env_folder": "examples/eramba_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_risk_attachment",
@@ -41,5 +41,10 @@
     "record_compliance_effectiveness",
     "triage_security_incident",
     "upload_compliance_evidence"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "vendor_due_diligence_onboarding"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/odoo_crm_env",
+  "env_folder": "examples/odoo_crm_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "account_consolidation",
@@ -47,5 +47,10 @@
     "submit_proposal_and_advance_stage",
     "tag_competitor_mentions",
     "tag_strategic_accounts"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "end_of_quarter_pipeline_restructure"
+    ]
+  }
 }

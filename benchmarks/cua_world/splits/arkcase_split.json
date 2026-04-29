@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/arkcase_env",
+  "env_folder": "examples/arkcase_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_case_costs",
@@ -56,5 +56,10 @@
     "upload_and_process_incident_report",
     "verify_evidence_chain_of_custody",
     "version_control_document"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "quarterly_compliance_reconciliation"
+    ]
+  }
 }

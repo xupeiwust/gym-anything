@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/invesalius3_env",
+  "env_folder": "examples/invesalius3_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "air_space_reconstruction",
@@ -89,5 +89,10 @@
     "virtual_craniotomy_planning",
     "visualize_bone_skin_overlay",
     "visualize_cranial_cross_section"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "neurosurgical_case_conference_package"
+    ]
+  }
 }

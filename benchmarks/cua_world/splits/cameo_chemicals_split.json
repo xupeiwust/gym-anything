@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/cameo_chemicals_env",
+  "env_folder": "examples/cameo_chemicals_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "aegl_exposure_threshold_comparison",
@@ -84,5 +84,10 @@
     "vapor_hazard_property_comparison",
     "water_solubility_groundwater_risk",
     "waterway_spill_behavior_classification"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "flood_cascade_hazard_assessment"
+    ]
+  }
 }

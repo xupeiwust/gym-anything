@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/woo_commerce_env",
+  "env_folder": "examples/woo_commerce_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_coupon",
@@ -72,5 +72,10 @@
     "update_product_inventory",
     "update_product_price",
     "update_product_shipping_dimensions"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "launch_coffee_product_line"
+    ]
+  }
 }

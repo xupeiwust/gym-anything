@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/floreant_pos_env",
+  "env_folder": "examples/floreant_pos_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_cooking_instruction",
@@ -51,5 +51,10 @@
     "update_restaurant_info",
     "verify_menu_order_workflow",
     "void_settled_transaction"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "chefs_table_experience_launch"
+    ]
+  }
 }

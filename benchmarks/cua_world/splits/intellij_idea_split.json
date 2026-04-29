@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/intellij_idea_env",
+  "env_folder": "examples/intellij_idea_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_dependency_implement",
@@ -82,5 +82,10 @@
     "split_into_modules",
     "test_api_endpoints_http",
     "trading_order_book_optimization"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "fix_multi_module_banking_system"
+    ]
+  }
 }

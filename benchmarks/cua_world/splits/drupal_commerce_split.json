@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/drupal_commerce_env",
+  "env_folder": "examples/drupal_commerce_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "add_gift_order_fields",
@@ -78,5 +78,10 @@
     "setup_volume_discount",
     "split_backordered_order",
     "update_product_pricing"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "customer_revenue_vip_reward"
+    ]
+  }
 }

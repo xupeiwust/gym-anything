@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/electrical_calculations_env",
+  "env_folder": "examples/electrical_calculations_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "555_timer_astable",
@@ -42,5 +42,10 @@
     "voltage_drop_branch_circuit",
     "wire_dc_resistance",
     "zener_regulator_design"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "three_phase_motor_feeder_assessment"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/flica_env",
+  "env_folder": "examples/flica_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "adjust_app_permissions",
@@ -33,5 +33,10 @@
     "verify_friend_deletion_safeguard",
     "verify_landscape_layout",
     "verify_large_text_readability"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "complete_base_transfer_setup"
+    ]
+  }
 }

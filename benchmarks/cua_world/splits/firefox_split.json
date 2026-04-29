@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/firefox_env",
+  "env_folder": "examples/firefox_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "a11y_compliance_audit",
@@ -76,5 +76,10 @@
     "wayback_web_history_research",
     "web_perf_waterfall_analysis",
     "world_bank_dev_research"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "devtools_cascading_debug"
+    ]
+  }
 }

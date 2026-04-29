@@ -1,5 +1,5 @@
 {
-  "env_folder": "benchmarks/cua_world/environments/libreoffice_calc_env",
+  "env_folder": "examples/libreoffice_calc_env",
   "train_ratio": 0.8,
   "train_tasks": [
     "accessible_venue_eval",
@@ -193,5 +193,10 @@
     "wildlife_log_cleanup",
     "wine_tasting_organizer",
     "yarn_project_calculator"
-  ]
+  ],
+  "additional_splits": {
+    "long_horizon": [
+      "financial_model_audit"
+    ]
+  }
 }
