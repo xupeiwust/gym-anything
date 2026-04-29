@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from .api import from_config
@@ -431,11 +432,14 @@ def _run_benchmark_batch(args) -> int:
     if not pairs:
         print(f"No tasks found for split '{args.split}'.", file=sys.stderr)
         return 1
+    max_tasks = getattr(args, "max_tasks", None)
+    if max_tasks is not None:
+        pairs = pairs[:max_tasks]
 
-    print(f"Running {len(pairs)} tasks with {args.agent}")
-    failures = 0
-    for i, (task_id, env_dir) in enumerate(pairs, 1):
-        print(f"\n[{i}/{len(pairs)}] {Path(env_dir).name} / {task_id}")
+    parallel = max(1, int(getattr(args, "parallel", 1) or 1))
+    print(f"Running {len(pairs)} tasks with {args.agent} (parallel={parallel})")
+
+    def build_command(task_id: str, env_dir: str) -> list[str]:
         cmd = [
             sys.executable, "-m", "gym_anything.cli", "benchmark",
             env_dir, "--task", task_id,
@@ -455,13 +459,40 @@ def _run_benchmark_batch(args) -> int:
             cmd.append("--use-savevm")
         if getattr(args, "temperature", None) is not None:
             cmd.extend(["--temperature", str(args.temperature)])
+        if getattr(args, "remote_url", None):
+            cmd.extend(["--remote-url", args.remote_url])
+            cmd.extend(["--remote-timeout", str(args.remote_timeout)])
+            cmd.extend(["--remote-worker-reset-policy", args.remote_worker_reset_policy])
         for kv in (getattr(args, "agent_arg", None) or []):
             cmd.extend(["--agent-arg", kv])
         _append_verifier_cli_args(cmd, args)
+        return cmd
 
-        result = subprocess.run(cmd, check=False)
-        if result.returncode != 0:
-            failures += 1
+    def run_one(index: int, task_id: str, env_dir: str) -> tuple[int, str, str, int]:
+        print(f"\n[{index}/{len(pairs)}] START {Path(env_dir).name} / {task_id}", flush=True)
+        result = subprocess.run(build_command(task_id, env_dir), check=False)
+        return index, task_id, env_dir, result.returncode
+
+    failures = 0
+    if parallel == 1:
+        for i, (task_id, env_dir) in enumerate(pairs, 1):
+            index, done_task_id, done_env_dir, returncode = run_one(i, task_id, env_dir)
+            status = "ok" if returncode == 0 else f"failed ({returncode})"
+            print(f"[{index}/{len(pairs)}] DONE {Path(done_env_dir).name} / {done_task_id}: {status}")
+            if returncode != 0:
+                failures += 1
+    else:
+        with ThreadPoolExecutor(max_workers=parallel) as executor:
+            futures = [
+                executor.submit(run_one, i, task_id, env_dir)
+                for i, (task_id, env_dir) in enumerate(pairs, 1)
+            ]
+            for future in as_completed(futures):
+                index, done_task_id, done_env_dir, returncode = future.result()
+                status = "ok" if returncode == 0 else f"failed ({returncode})"
+                print(f"[{index}/{len(pairs)}] DONE {Path(done_env_dir).name} / {done_task_id}: {status}")
+                if returncode != 0:
+                    failures += 1
 
     print(f"\nBatch complete: {len(pairs) - failures}/{len(pairs)} succeeded")
     return 1 if failures else 0
@@ -499,6 +530,8 @@ def cmd_benchmark(args) -> int:
     info.add_row("Model", args.model or "[dim]default[/dim]")
     info.add_row("Max steps", str(args.steps) if args.steps is not None else "[dim]from task.json[/dim]")
     info.add_row("Seed", str(args.seed))
+    if args.remote_url:
+        info.add_row("Remote", args.remote_url)
 
     console.print()
     console.print(Panel(
@@ -537,6 +570,9 @@ def cmd_benchmark(args) -> int:
         vlm_checklist_max_frames=args.vlm_checklist_max_frames,
         vlm_checklist_completion_threshold=args.vlm_checklist_completion_threshold,
         vlm_checklist_integrity_threshold=args.vlm_checklist_integrity_threshold,
+        remote_url=args.remote_url,
+        remote_timeout=args.remote_timeout,
+        remote_worker_reset_policy=args.remote_worker_reset_policy,
     )
     return _run_single(ns)
 
@@ -1106,10 +1142,20 @@ def main(argv=None):
     p_bench.add_argument("--seed", type=int, default=42)
     p_bench.add_argument("--temperature", type=float, help="Sampling temperature")
     p_bench.add_argument("--split", default="test", help="Task split for batch mode (default: test)")
+    p_bench.add_argument("--parallel", "--jobs", type=int, default=1, help="Batch task processes to run at once")
+    p_bench.add_argument("--max-tasks", type=int, help="Limit the number of tasks in batch mode")
     p_bench.add_argument("--surface", choices=("raw", "verified"), default="raw")
     p_bench.add_argument("--use-cache", action="store_true")
     p_bench.add_argument("--cache-level", default="pre_start")
     p_bench.add_argument("--use-savevm", action="store_true")
+    p_bench.add_argument("--remote-url", help="Remote master or worker URL for environment execution")
+    p_bench.add_argument("--remote-timeout", type=int, default=300, help="Remote HTTP request timeout")
+    p_bench.add_argument(
+        "--remote-worker-reset-policy",
+        choices=("core", "baseline_setup", "none"),
+        default="core",
+        help="Worker-local reset policy for remote environments",
+    )
     p_bench.add_argument("--verbose", action="store_true")
     p_bench.add_argument("--debug", action="store_true")
     p_bench.add_argument("--agent-arg", action="append", metavar="KEY=VALUE",

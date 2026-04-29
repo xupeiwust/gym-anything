@@ -30,6 +30,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import requests
 
 from gym_anything.contracts import SessionInfo
+from gym_anything.config.loading import _load_envspec, _load_taskspec
 from gym_anything.specs import EnvSpec, TaskSpec
 from gym_anything.utils.yaml import load_structured_file
 
@@ -64,12 +65,16 @@ class RemoteGymEnv:
         self._episode_dir: Optional[Path] = None
         self._cache_dir: Optional[Path] = None
         self._session_info: Optional[SessionInfo] = None
+        self._max_steps_override: Optional[int] = None
+        self._timeout_sec_override: Optional[int] = None
         self._closed = False
         self.worker_reset_policy = worker_reset_policy
         
         # Store specs for reference
         self.env_spec = env_spec
         self.task_spec = task_spec
+        if env_dir and self.env_spec is None:
+            self.env_spec, self.task_spec = self._load_local_config_specs(env_dir, task_id)
         
         # Create environment on remote server
         self._create_remote_environment(env_spec, task_spec, env_dir, task_id)
@@ -121,6 +126,47 @@ class RemoteGymEnv:
         
         result = response.json()
         self.env_id = result["env_id"]
+
+    def _load_local_config_specs(
+        self,
+        env_dir: Union[str, os.PathLike],
+        task_id: Optional[str],
+    ) -> Tuple[Optional[EnvSpec], Optional[TaskSpec]]:
+        """Best-effort local spec load for client-side metadata."""
+        env_dir = Path(env_dir)
+        env_spec_path = next(
+            (path for path in (env_dir / "env.yaml", env_dir / "env.yml", env_dir / "env.json") if path.exists()),
+            None,
+        )
+        if env_spec_path is None:
+            return None, None
+
+        try:
+            env_spec = _load_envspec(env_spec_path)
+        except Exception:
+            env_spec = None
+
+        task_spec = None
+        if task_id:
+            task_spec_path = next(
+                (
+                    path
+                    for path in (
+                        env_dir / "tasks" / task_id / "task.yaml",
+                        env_dir / "tasks" / task_id / "task.yml",
+                        env_dir / "tasks" / task_id / "task.json",
+                    )
+                    if path.exists()
+                ),
+                None,
+            )
+            if task_spec_path is not None:
+                try:
+                    task_spec = _load_taskspec(task_spec_path)
+                except Exception:
+                    task_spec = None
+
+        return env_spec, task_spec
         
     def _request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """Make HTTP request to remote server with error handling."""
@@ -314,6 +360,8 @@ class RemoteGymEnv:
 
     @property
     def max_steps(self) -> Optional[int]:
+        if self._max_steps_override is not None:
+            return self._max_steps_override
         task_spec = self.task_spec
         if task_spec is None:
             return None
@@ -321,6 +369,8 @@ class RemoteGymEnv:
 
     @property
     def timeout_sec(self) -> Optional[int]:
+        if self._timeout_sec_override is not None:
+            return self._timeout_sec_override
         task_spec = self.task_spec
         if task_spec is None:
             return None
@@ -382,6 +432,21 @@ class RemoteGymEnv:
         result = response.json()
         if result.get("status") != "loaded":
             raise RuntimeError("Failed to load state")
+
+    def set_episode_limits(
+        self,
+        *,
+        max_steps: Optional[int] = None,
+        timeout_sec: Optional[int] = None,
+    ) -> None:
+        """Override active episode limits on the remote environment."""
+        self._request(
+            "POST",
+            f"/envs/{self.env_id}/episode_limits",
+            json={"max_steps": max_steps, "timeout_sec": timeout_sec},
+        )
+        self._max_steps_override = max_steps
+        self._timeout_sec_override = timeout_sec
     
     # ========================================================================
     # Recording Controls

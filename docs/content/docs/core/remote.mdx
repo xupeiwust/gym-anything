@@ -35,6 +35,23 @@ The main server commands are:
 
 {/* TODO: screenshot of the remote cluster dashboard showing connected workers */}
 
+Start one master:
+
+```bash
+gym-anything-master --host 0.0.0.0 --port 5800
+```
+
+Start workers on the machines that should host environments:
+
+```bash
+gym-anything-worker \
+  --master-url http://master-host:5800 \
+  --max-envs 1 \
+  --advertise-host "$(hostname -f)"
+```
+
+The master stores worker and environment routing state in memory, so run a single master process. Submit worker jobs with your cluster scheduler by launching `gym-anything-worker` in each job. The environment paths and cache paths used by clients must also exist on the worker machines.
+
 ## Python Usage
 
 From Python, the remote client looks like this:
@@ -54,3 +71,23 @@ After that, the flow is similar to a local environment:
 - `reset()`
 - `step(...)`
 - `close()`
+
+## Benchmark Usage
+
+`gym-anything benchmark` can route environment execution through a remote master or worker:
+
+```bash
+gym-anything benchmark moodle \
+  --task enroll_student \
+  --agent ClaudeAgent \
+  --model claude-opus-4 \
+  --remote-url http://master-host:5800
+```
+
+The agent loop still runs in the client process. Environment reset, actions, screenshots, and verification run on the selected worker.
+
+Useful remote flags:
+
+- `--remote-url`: master or worker URL
+- `--remote-timeout`: HTTP timeout for long reset/step calls
+- `--remote-worker-reset-policy`: worker-local reset policy, usually `core`

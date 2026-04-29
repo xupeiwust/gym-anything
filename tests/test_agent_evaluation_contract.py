@@ -97,6 +97,9 @@ class AgentEvaluationContractTests(unittest.TestCase):
                 vlm_backend="local",
                 vlm_base_url="http://localhost:8080/v1",
                 vlm_model="demo-model",
+                remote_url=None,
+                remote_timeout=300,
+                remote_worker_reset_policy="core",
             )
 
             with mock.patch.object(run_single_module, "from_config", return_value=fake_env), \
@@ -116,6 +119,45 @@ class AgentEvaluationContractTests(unittest.TestCase):
                 [{"action": "screenshot", "output": "synthetic.png", "tool_id": "tool-1"}],
             )
             self.assertEqual(policy.finish_info["verifier"]["score"], 100)
+
+    def test_run_single_can_create_remote_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            fake_env = _FakeEnv(Path(tmp))
+            args = SimpleNamespace(
+                env_dir="demo-env",
+                seed=42,
+                task="demo-task",
+                steps=1,
+                agent="FakePolicy",
+                agent_args=json.dumps({"model": "demo-model"}),
+                debug=False,
+                debug_low=False,
+                verbose=False,
+                setup_code="none",
+                use_cache=False,
+                cache_level="pre_start",
+                use_savevm=False,
+                vlm_backend="local",
+                vlm_base_url="http://localhost:8080/v1",
+                vlm_model="demo-model",
+                remote_url="http://127.0.0.1:5800",
+                remote_timeout=12,
+                remote_worker_reset_policy="baseline_setup",
+            )
+
+            with mock.patch.object(run_single_module.RemoteGymEnv, "from_config", return_value=fake_env) as remote_make, \
+                 mock.patch.object(run_single_module.agent_registry, "FakePolicy", _FakePolicy, create=True):
+                _FakePolicy.instances.clear()
+                result = run_single_module.run_single(args)
+
+            self.assertEqual(result, 0)
+            remote_make.assert_called_once_with(
+                remote_url="http://127.0.0.1:5800",
+                env_dir="demo-env",
+                task_id="demo-task",
+                timeout=12,
+                worker_reset_policy="baseline_setup",
+            )
 
 
 if __name__ == "__main__":

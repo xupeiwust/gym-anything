@@ -916,6 +916,30 @@ def get_session_info(env_id: str):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/envs/<env_id>/episode_limits', methods=['POST'])
+@track_endpoint
+def set_episode_limits(env_id: str):
+    """Override active episode limits."""
+    try:
+        env = env_manager.get_environment(env_id)
+        data = request.get_json() or {}
+        env.set_episode_limits(
+            max_steps=data.get("max_steps"),
+            timeout_sec=data.get("timeout_sec"),
+        )
+        return jsonify({
+            "status": "updated",
+            "max_steps": env.max_steps,
+            "timeout_sec": env.timeout_sec,
+        })
+
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 404
+    except Exception as e:
+        logger.error(f"Error setting episode limits for {env_id}: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/envs/<env_id>/save_state', methods=['POST'])
 @track_endpoint
 def save_state(env_id: str):

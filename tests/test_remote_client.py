@@ -15,6 +15,8 @@ class RemoteClientResetPolicyTests(unittest.TestCase):
         env.env_id = "env-123"
         env._episode_dir = None
         env._cache_dir = Path("/tmp")
+        env._max_steps_override = None
+        env._timeout_sec_override = None
         env._closed = False
         env.worker_reset_policy = worker_reset_policy
         return env
@@ -52,6 +54,22 @@ class RemoteClientResetPolicyTests(unittest.TestCase):
             env.reset()
 
         self.assertIsNone(request_mock.call_args_list[0].kwargs["json"]["post_reset_policy"])
+
+    def test_set_episode_limits_posts_to_remote_env(self) -> None:
+        env = self._make_env()
+        response = mock.Mock()
+        response.json.return_value = {"status": "updated", "max_steps": 3, "timeout_sec": 120}
+
+        with mock.patch.object(env, "_request", return_value=response) as request_mock:
+            env.set_episode_limits(max_steps=3, timeout_sec=120)
+
+        request_mock.assert_called_once_with(
+            "POST",
+            "/envs/env-123/episode_limits",
+            json={"max_steps": 3, "timeout_sec": 120},
+        )
+        self.assertEqual(env.max_steps, 3)
+        self.assertEqual(env.timeout_sec, 120)
 
 
 if __name__ == "__main__":

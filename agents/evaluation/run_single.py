@@ -8,6 +8,7 @@ from pathlib import Path
 
 import agents.agents as agent_registry
 from gym_anything.api import from_config
+from gym_anything.remote import RemoteGymEnv
 from tqdm import tqdm
 
 
@@ -76,6 +77,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--vlm_checklist_max_frames", type=int, default=None)
     parser.add_argument("--vlm_checklist_completion_threshold", type=float, default=None)
     parser.add_argument("--vlm_checklist_integrity_threshold", type=float, default=None)
+    parser.add_argument("--remote_url", type=str, default=None, help="Remote master or worker URL")
+    parser.add_argument("--remote_timeout", type=int, default=300, help="Remote HTTP request timeout")
+    parser.add_argument(
+        "--remote_worker_reset_policy",
+        choices=("core", "baseline_setup", "none"),
+        default="core",
+        help="Worker-local reset policy for remote environments",
+    )
     return parser
 
 
@@ -116,7 +125,8 @@ def _load_task_description(env, env_dir: str, task_id: str) -> str | None:
     if env.task_spec and env.task_spec.description:
         return env.task_spec.description
 
-    task_spec_path = (env.task_root / "task.json") if env.task_root else None
+    task_root = getattr(env, "task_root", None)
+    task_spec_path = (task_root / "task.json") if task_root else None
     if task_spec_path is None:
         task_spec_path = Path(env_dir) / "tasks" / task_id / "task.json"
 
@@ -124,11 +134,27 @@ def _load_task_description(env, env_dir: str, task_id: str) -> str | None:
         return json.load(task_file).get("description")
 
 
+def _make_env(args: argparse.Namespace):
+    remote_url = getattr(args, "remote_url", None)
+    if not remote_url:
+        return from_config(args.env_dir, task_id=args.task)
+    worker_reset_policy = getattr(args, "remote_worker_reset_policy", "core")
+    if worker_reset_policy == "none":
+        worker_reset_policy = None
+    return RemoteGymEnv.from_config(
+        remote_url=remote_url,
+        env_dir=args.env_dir,
+        task_id=args.task,
+        timeout=getattr(args, "remote_timeout", 300),
+        worker_reset_policy=worker_reset_policy,
+    )
+
+
 def run_single(args: argparse.Namespace) -> int:
     _apply_vlm_settings(args)
     _apply_verifier_settings(args)
 
-    env = from_config(args.env_dir, task_id=args.task)
+    env = _make_env(args)
     try:
         logger.info("Resetting environment")
         env.reset(

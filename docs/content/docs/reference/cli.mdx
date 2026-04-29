@@ -61,13 +61,28 @@ Important flags:
 - `--model`: model identifier (e.g. `claude-opus-4`)
 - `--steps`: max steps per task (default: 50)
 - `--split`: task split for batch mode (default: `test`)
+- `--parallel`, `--jobs`: batch task processes to run at once
+- `--max-tasks`: limit the number of tasks in batch mode
 - `--agent-arg KEY=VALUE`: extra agent argument (repeatable)
+- `--remote-url`: route environment execution through a remote master or worker
+- `--remote-timeout`: HTTP timeout for remote calls
+- `--remote-worker-reset-policy`: worker-local reset policy, usually `core`
 - `--verifier-mode`: override `task.json` verifier mode for the run, for example `vlm_checklist`
 - `--vlm-checklist-model`: model used by the VLM checklist verifier
 
 <Callout type="info">
 When `--task` is omitted, the CLI enters batch mode and runs all tasks for the given environment and split. Each task runs in its own process for fault isolation.
 </Callout>
+
+Remote benchmark example:
+
+```bash
+gym-anything benchmark moodle \
+  --task enroll_student \
+  --agent ClaudeAgent \
+  --model claude-opus-4 \
+  --remote-url http://master-host:5800
+```
 
 Verifier overrides can also be set with environment variables. CLI flags take precedence over environment variables, which take precedence over `task.json`.
 
