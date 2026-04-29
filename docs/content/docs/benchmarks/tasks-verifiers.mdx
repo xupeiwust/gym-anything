@@ -124,7 +124,25 @@ Most of our benchmark tasks use a Python check in `verifier.py`. That check can 
 
 For the Moodle enroll-student task, the checker queries the Moodle database and verifies that the correct student was enrolled in the expected course.
 
-We also support image-based checks and mixed checks, but most tasks use code in `verifier.py`.
+We also support image-based checks, mixed checks, and VLM checklist checks, but most tasks use code in `verifier.py`.
+
+VLM checklist tasks use a checked-in `vlm_checklist.json` file in the task folder. The verifier reads the checklist, samples screenshots from the trajectory, asks the configured VLM to score each checklist item, and returns the normal verifier shape with `passed`, `score`, and `feedback`.
+
+```json
+{
+  "success": {
+    "mode": "vlm_checklist",
+    "spec": {
+      "checklist": "vlm_checklist.json",
+      "model": "gemini-3-flash-preview",
+      "completion_threshold": 80,
+      "integrity_threshold": 0.75
+    }
+  }
+}
+```
+
+Checklist generation is intentionally separate from task execution. Normal evals assume the checklist already exists.
 
 ## If You Want To Understand A Task Quickly
 

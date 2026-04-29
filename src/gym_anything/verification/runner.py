@@ -11,7 +11,9 @@ from typing import Any, Dict, Optional
 from ..runtime.runners.base import BaseRunner
 from ..specs import EnvSpec, TaskSpec
 from ..vlm import query_vlm, sample_trajectory_frames, get_final_screenshot, get_first_screenshot
+from .contracts import SUPPORTED_SUCCESS_MODES
 from .imports import verifier_import_context
+from .vlm_checklist import evaluate_vlm_checklist, get_verifier_mode_override
 
 
 class VerifierRunner:
@@ -26,9 +28,28 @@ class VerifierRunner:
         env_root: Optional[Path],
         task_root: Optional[Path],
     ) -> Dict[str, Any]:
-        mode = task_spec.success.mode
+        task_mode = task_spec.success.mode
+        override_mode = get_verifier_mode_override()
+        mode = override_mode or task_mode
         spec = task_spec.success.spec or {}
-        report: Dict[str, Any] = {"mode": mode}
+        report: Dict[str, Any] = {
+            "mode": mode,
+            "mode_source": "env" if override_mode else "task",
+        }
+        if override_mode:
+            report["task_mode"] = task_mode
+            report["mode_override_env"] = "GYM_ANYTHING_VERIFIER_MODE"
+        if mode not in SUPPORTED_SUCCESS_MODES:
+            supported = ", ".join(SUPPORTED_SUCCESS_MODES)
+            report.update(
+                {
+                    "error": f"unsupported mode: {mode}; supported modes: {supported}",
+                    "passed": False,
+                    "score": 0,
+                    "decided": True,
+                }
+            )
+            return report
         # breakpoint()
         if mode == "program":
             report.update(
@@ -51,12 +72,22 @@ class VerifierRunner:
             )
             if prog.get("decided"):
                 prog["mode"] = "program"
+                prog["mode_source"] = report["mode_source"]
+                if override_mode:
+                    prog["task_mode"] = task_mode
+                    prog["mode_override_env"] = "GYM_ANYTHING_VERIFIER_MODE"
                 return prog
             img = self._run_image_match(runner, spec.get("image_match", {}), episode_dir, env_root, task_root)
             img["mode"] = "image_match"
+            img["mode_source"] = report["mode_source"]
+            if override_mode:
+                img["task_mode"] = task_mode
+                img["mode_override_env"] = "GYM_ANYTHING_VERIFIER_MODE"
             return img
-        else:
-            report.update({"error": f"unsupported mode: {mode}", "passed": False, "score": 0})
+        elif mode == "vlm_checklist":
+            report.update(
+                self._run_vlm_checklist(spec, episode_dir, env_spec, task_spec, task_root, env_root)
+            )
         return report
 
     def _run_program_verifier(
@@ -191,6 +222,31 @@ class VerifierRunner:
             mod = importlib.import_module(mod_name)
             return getattr(mod, func)
         raise ValueError("Invalid program reference; expected 'file.py::func' or 'pkg.mod:func'")
+
+    def _run_vlm_checklist(
+        self,
+        spec: Dict[str, Any],
+        episode_dir: Path,
+        env_spec: EnvSpec,
+        task_spec: TaskSpec,
+        task_root: Optional[Path],
+        env_root: Optional[Path],
+    ) -> Dict[str, Any]:
+        traj = self._load_traj(episode_dir)
+        task_info = {
+            "task_id": task_spec.id,
+            "description": task_spec.description,
+            "metadata": task_spec.metadata if task_spec.metadata else {},
+            "task_spec": asdict(task_spec),
+            "env_id": env_spec.id,
+        }
+        return evaluate_vlm_checklist(
+            spec=spec,
+            traj=traj,
+            task_info=task_info,
+            task_root=task_root,
+            env_root=env_root,
+        )
 
     def _run_image_match(
         self,

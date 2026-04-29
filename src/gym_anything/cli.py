@@ -54,6 +54,62 @@ def _print_json(data) -> None:
     print(json.dumps(data, indent=2, sort_keys=True))
 
 
+_VERIFIER_CLI_ENV = {
+    "vlm_checklist_model": "GYM_ANYTHING_VLM_CHECKLIST_MODEL",
+    "vlm_checklist_backend": "GYM_ANYTHING_VLM_CHECKLIST_BACKEND",
+    "vlm_checklist_base_url": "GYM_ANYTHING_VLM_CHECKLIST_BASE_URL",
+    "vlm_checklist_temperature": "GYM_ANYTHING_VLM_CHECKLIST_TEMPERATURE",
+    "vlm_checklist_top_p": "GYM_ANYTHING_VLM_CHECKLIST_TOP_P",
+    "vlm_checklist_max_tokens": "GYM_ANYTHING_VLM_CHECKLIST_MAX_TOKENS",
+    "vlm_checklist_max_frames": "GYM_ANYTHING_VLM_CHECKLIST_MAX_FRAMES",
+    "vlm_checklist_completion_threshold": "GYM_ANYTHING_VLM_CHECKLIST_COMPLETION_THRESHOLD",
+    "vlm_checklist_integrity_threshold": "GYM_ANYTHING_VLM_CHECKLIST_INTEGRITY_THRESHOLD",
+}
+
+
+def _add_verifier_override_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--verifier-mode",
+        choices=("task", "program", "image_match", "multi", "vlm_checklist"),
+        help="Override task.json success.mode for this run. Use 'task' to force task.json behavior.",
+    )
+    parser.add_argument("--vlm-checklist-model", help="Model used by the VLM checklist verifier")
+    parser.add_argument(
+        "--vlm-checklist-backend",
+        choices=("local", "openai", "anthropic", "gemini"),
+        help="VLM backend used by the checklist verifier",
+    )
+    parser.add_argument("--vlm-checklist-base-url", help="OpenAI-compatible base URL for local checklist VLMs")
+    parser.add_argument("--vlm-checklist-temperature", type=float)
+    parser.add_argument("--vlm-checklist-top-p", type=float)
+    parser.add_argument("--vlm-checklist-max-tokens", type=int)
+    parser.add_argument("--vlm-checklist-max-frames", type=int)
+    parser.add_argument("--vlm-checklist-completion-threshold", type=float)
+    parser.add_argument("--vlm-checklist-integrity-threshold", type=float)
+
+
+def _apply_verifier_overrides(args: argparse.Namespace) -> None:
+    mode = getattr(args, "verifier_mode", None)
+    if mode is not None:
+        if mode == "task":
+            os.environ.pop("GYM_ANYTHING_VERIFIER_MODE", None)
+        else:
+            os.environ["GYM_ANYTHING_VERIFIER_MODE"] = mode
+    for attr, env_var in _VERIFIER_CLI_ENV.items():
+        value = getattr(args, attr, None)
+        if value is not None:
+            os.environ[env_var] = str(value)
+
+
+def _append_verifier_cli_args(cmd: list[str], args: argparse.Namespace) -> None:
+    if getattr(args, "verifier_mode", None) is not None:
+        cmd.extend(["--verifier-mode", args.verifier_mode])
+    for attr in _VERIFIER_CLI_ENV:
+        value = getattr(args, attr, None)
+        if value is not None:
+            cmd.extend([f"--{attr.replace('_', '-')}", str(value)])
+
+
 def _show_rich_help() -> None:
     """Display a rich help panel with grouped commands."""
     from rich.console import Console
@@ -118,6 +174,7 @@ def cmd_verify_corpus(args):
 
 def cmd_verify_task(args):
     args.env_dir = _resolve_env_dir(args.env_dir)
+    _apply_verifier_overrides(args)
     result = verify_task_pipeline(
         env_dir=args.env_dir,
         task_id=args.task,
@@ -400,6 +457,7 @@ def _run_benchmark_batch(args) -> int:
             cmd.extend(["--temperature", str(args.temperature)])
         for kv in (getattr(args, "agent_arg", None) or []):
             cmd.extend(["--agent-arg", kv])
+        _append_verifier_cli_args(cmd, args)
 
         result = subprocess.run(cmd, check=False)
         if result.returncode != 0:
@@ -419,6 +477,8 @@ def cmd_benchmark(args) -> int:
 
     if args.env_dir != "all":
         args.env_dir = _resolve_env_dir(args.env_dir)
+
+    _apply_verifier_overrides(args)
 
     if not args.task:
         return _run_benchmark_batch(args)
@@ -467,6 +527,16 @@ def cmd_benchmark(args) -> int:
         vlm_backend=os.environ.get("VLM_BACKEND", "local"),
         vlm_base_url=os.environ.get("VLM_BASE_URL", "http://localhost:8080/v1"),
         vlm_model=os.environ.get("VLM_MODEL", "Qwen/Qwen3-VL-4B-Thinking"),
+        verifier_mode=args.verifier_mode,
+        vlm_checklist_model=args.vlm_checklist_model,
+        vlm_checklist_backend=args.vlm_checklist_backend,
+        vlm_checklist_base_url=args.vlm_checklist_base_url,
+        vlm_checklist_temperature=args.vlm_checklist_temperature,
+        vlm_checklist_top_p=args.vlm_checklist_top_p,
+        vlm_checklist_max_tokens=args.vlm_checklist_max_tokens,
+        vlm_checklist_max_frames=args.vlm_checklist_max_frames,
+        vlm_checklist_completion_threshold=args.vlm_checklist_completion_threshold,
+        vlm_checklist_integrity_threshold=args.vlm_checklist_integrity_threshold,
     )
     return _run_single(ns)
 
@@ -997,6 +1067,7 @@ def main(argv=None):
     p_verify_task.add_argument("--cache_level", default="pre_start")
     p_verify_task.add_argument("--use_savevm", action="store_true")
     p_verify_task.add_argument("--json", action="store_true")
+    _add_verifier_override_args(p_verify_task)
     p_verify_task.set_defaults(func=cmd_verify_task)
 
     p_val = sub.add_parser("validate", help="Validate env/task specs")
@@ -1043,6 +1114,7 @@ def main(argv=None):
     p_bench.add_argument("--debug", action="store_true")
     p_bench.add_argument("--agent-arg", action="append", metavar="KEY=VALUE",
                          help="Extra agent argument (repeatable, e.g. --agent-arg history_n=4)")
+    _add_verifier_override_args(p_bench)
     p_bench.set_defaults(func=cmd_benchmark)
 
     p_agents = sub.add_parser("agents", help="List available agent implementations")

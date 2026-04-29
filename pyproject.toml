@@ -62,6 +62,7 @@ services = [
 ]
 vlm = [
     "anthropic>=0.50",
+    "litellm>=1.52",
     "openai>=1.0",
 ]
 all = [

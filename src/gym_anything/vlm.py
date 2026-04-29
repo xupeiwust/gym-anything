@@ -9,15 +9,17 @@ Supported backends:
   - ``local``     – OpenAI-compatible server (vLLM, etc.)
   - ``openai``    – OpenAI API (GPT-4o, etc.)
   - ``anthropic`` – Anthropic Claude
+  - ``gemini``    – Google Gemini via LiteLLM
 
 Configuration is read from environment variables:
-  VLM_BACKEND   : "local" (default), "openai", or "anthropic"
+  VLM_BACKEND   : "local" (default), "openai", "anthropic", or "gemini"
   VLM_MODEL     : Model name (defaults per backend below)
   VLM_BASE_URL  : Base URL for local server (default "http://localhost:8080/v1")
   VLM_API_KEY   : API key for local server (default "EMPTY")
   VLM_MAX_RETRIES : Max retry attempts (default 3)
   ANTHROPIC_API_KEY : Anthropic API key
   OPENAI_API_KEY    : OpenAI API key
+  GEMINI_API_KEY    : Gemini API key
 
 Usage inside a verifier::
 
@@ -49,6 +51,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_MODELS = {
     "local": "Qwen/Qwen3-VL-8B-Instruct",
     "anthropic": "claude-sonnet-4-5",
+    "gemini": "gemini-3-flash-preview",
     "openai": "gpt-4o",
 }
 
@@ -70,6 +73,8 @@ def get_vlm_config() -> Dict[str, Any]:
         config["api_key"] = os.environ.get("VLM_API_KEY", "EMPTY")
     elif backend == "anthropic":
         config["api_key"] = os.environ.get("ANTHROPIC_API_KEY", "")
+    elif backend == "gemini":
+        config["api_key"] = os.environ.get("GEMINI_API_KEY", "")
     elif backend == "openai":
         config["api_key"] = os.environ.get("OPENAI_API_KEY", "")
 
@@ -277,6 +282,59 @@ def _query_anthropic(
         return _error_result(str(e))
 
 
+def _query_gemini(
+    prompt: str,
+    images: List[Dict[str, str]],
+    config: Dict[str, Any],
+    max_tokens: int,
+    temperature: float,
+    top_p: float,
+) -> Dict[str, Any]:
+    """Query Gemini through LiteLLM."""
+    try:
+        import litellm
+    except ImportError:
+        return _error_result("litellm package not installed. Run: pip install litellm")
+
+    if not config.get("api_key"):
+        return _error_result("No GEMINI_API_KEY found in environment.")
+
+    messages = _build_openai_messages(prompt, images)
+    model = str(config["model"])
+    if not model.startswith("gemini/"):
+        model = f"gemini/{model}"
+
+    old_key = os.environ.get("GEMINI_API_KEY")
+    os.environ["GEMINI_API_KEY"] = config["api_key"]
+    try:
+        for attempt in range(config["max_retries"]):
+            try:
+                response = litellm.completion(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    timeout=int(os.environ.get("VLM_TIMEOUT", "180")),
+                )
+                text = response.choices[0].message.content or ""
+                return {"success": True, "response": text, "parsed": parse_vlm_json(text), "error": ""}
+            except Exception as e:
+                logger.warning("Gemini attempt %d/%d failed: %s", attempt + 1, config["max_retries"], e)
+                if attempt < config["max_retries"] - 1:
+                    time.sleep(2 ** attempt)
+                else:
+                    raise
+    except Exception as e:
+        logger.error("Gemini error: %s", e)
+        return _error_result(str(e))
+    finally:
+        if old_key is None:
+            os.environ.pop("GEMINI_API_KEY", None)
+        else:
+            os.environ["GEMINI_API_KEY"] = old_key
+
+
 def _error_result(msg: str) -> Dict[str, Any]:
     return {"success": False, "response": "", "parsed": {}, "error": msg}
 
@@ -332,6 +390,8 @@ def query_vlm(
     backend = config["backend"]
     if backend == "anthropic":
         return _query_anthropic(prompt, encoded_images, config, max_tokens, temperature)
+    elif backend == "gemini":
+        return _query_gemini(prompt, encoded_images, config, max_tokens, temperature, top_p)
     elif backend == "openai":
         return _query_openai_api(prompt, encoded_images, config, max_tokens, temperature, top_p)
     else:  # "local" (default)

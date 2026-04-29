@@ -62,10 +62,31 @@ Important flags:
 - `--steps`: max steps per task (default: 50)
 - `--split`: task split for batch mode (default: `test`)
 - `--agent-arg KEY=VALUE`: extra agent argument (repeatable)
+- `--verifier-mode`: override `task.json` verifier mode for the run, for example `vlm_checklist`
+- `--vlm-checklist-model`: model used by the VLM checklist verifier
 
 <Callout type="info">
 When `--task` is omitted, the CLI enters batch mode and runs all tasks for the given environment and split. Each task runs in its own process for fault isolation.
 </Callout>
+
+Verifier overrides can also be set with environment variables. CLI flags take precedence over environment variables, which take precedence over `task.json`.
+
+```bash
+GYM_ANYTHING_VERIFIER_MODE=vlm_checklist \
+GYM_ANYTHING_VLM_CHECKLIST_MODEL=gemini-3-flash-preview \
+gym-anything benchmark moodle --agent ClaudeAgent --model claude-opus-4
+```
+
+Common checklist verifier environment variables:
+
+- `GYM_ANYTHING_VERIFIER_MODE`
+- `GYM_ANYTHING_VLM_CHECKLIST_MODEL`
+- `GYM_ANYTHING_VLM_CHECKLIST_BACKEND` such as `gemini`, `local`, `openai`, or `anthropic`
+- `GYM_ANYTHING_VLM_CHECKLIST_BASE_URL`
+- `GYM_ANYTHING_VLM_CHECKLIST_TEMPERATURE`
+- `GYM_ANYTHING_VLM_CHECKLIST_MAX_FRAMES`
+- `GYM_ANYTHING_VLM_CHECKLIST_COMPLETION_THRESHOLD`
+- `GYM_ANYTHING_VLM_CHECKLIST_INTEGRITY_THRESHOLD`
 
 ## `gym-anything agents`
 

@@ -321,6 +321,35 @@ def verify_task_spec_path(
                     f"Relative multi-mode image target '{image_target}' was not found under task or environment root",
                     task_root,
                 )
+    elif mode == "vlm_checklist":
+        if isinstance(success_spec, str):
+            checklist = success_spec
+        else:
+            vlm_spec = success_spec.get("vlm_checklist", success_spec) if isinstance(success_spec, dict) else {}
+            if isinstance(vlm_spec, str):
+                checklist = vlm_spec
+            elif isinstance(vlm_spec, dict):
+                checklist = vlm_spec.get("checklist") or vlm_spec.get("checklist_path") or "vlm_checklist.json"
+            else:
+                checklist = "vlm_checklist.json"
+        checklist_path = Path(checklist)
+        if not checklist_path.is_absolute():
+            candidate = task_root / checklist_path
+            env_candidate = (env_root / checklist_path) if env_root is not None else None
+            if not candidate.exists() and not (env_candidate is not None and env_candidate.exists()):
+                _record_error(
+                    record,
+                    "missing_vlm_checklist",
+                    f"VLM checklist '{checklist}' was not found under task or environment root",
+                    task_root,
+                )
+        elif not checklist_path.exists():
+            _record_error(
+                record,
+                "missing_vlm_checklist",
+                f"VLM checklist not found: {checklist_path}",
+                task_root,
+            )
     return record
 
 

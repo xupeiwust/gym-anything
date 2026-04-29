@@ -17,6 +17,19 @@ DEFAULT_VLM_MODEL = os.environ.get("VLM_MODEL", "Qwen/Qwen3-VL-4B-Thinking")
 logger = logging.getLogger(__name__)
 
 
+_VERIFIER_CLI_ENV = {
+    "vlm_checklist_model": "GYM_ANYTHING_VLM_CHECKLIST_MODEL",
+    "vlm_checklist_backend": "GYM_ANYTHING_VLM_CHECKLIST_BACKEND",
+    "vlm_checklist_base_url": "GYM_ANYTHING_VLM_CHECKLIST_BASE_URL",
+    "vlm_checklist_temperature": "GYM_ANYTHING_VLM_CHECKLIST_TEMPERATURE",
+    "vlm_checklist_top_p": "GYM_ANYTHING_VLM_CHECKLIST_TOP_P",
+    "vlm_checklist_max_tokens": "GYM_ANYTHING_VLM_CHECKLIST_MAX_TOKENS",
+    "vlm_checklist_max_frames": "GYM_ANYTHING_VLM_CHECKLIST_MAX_FRAMES",
+    "vlm_checklist_completion_threshold": "GYM_ANYTHING_VLM_CHECKLIST_COMPLETION_THRESHOLD",
+    "vlm_checklist_integrity_threshold": "GYM_ANYTHING_VLM_CHECKLIST_INTEGRITY_THRESHOLD",
+}
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--env_dir", type=str, required=True)
@@ -48,6 +61,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--vlm_backend", type=str, default=DEFAULT_VLM_BACKEND)
     parser.add_argument("--vlm_base_url", type=str, default=DEFAULT_VLM_BASE_URL)
     parser.add_argument("--vlm_model", type=str, default=DEFAULT_VLM_MODEL)
+    parser.add_argument(
+        "--verifier_mode",
+        choices=("task", "program", "image_match", "multi", "vlm_checklist"),
+        default=None,
+        help="Override task.json success.mode for this run. Use 'task' to force task.json behavior.",
+    )
+    parser.add_argument("--vlm_checklist_model", type=str, default=None)
+    parser.add_argument("--vlm_checklist_backend", choices=("local", "openai", "anthropic", "gemini"), default=None)
+    parser.add_argument("--vlm_checklist_base_url", type=str, default=None)
+    parser.add_argument("--vlm_checklist_temperature", type=float, default=None)
+    parser.add_argument("--vlm_checklist_top_p", type=float, default=None)
+    parser.add_argument("--vlm_checklist_max_tokens", type=int, default=None)
+    parser.add_argument("--vlm_checklist_max_frames", type=int, default=None)
+    parser.add_argument("--vlm_checklist_completion_threshold", type=float, default=None)
+    parser.add_argument("--vlm_checklist_integrity_threshold", type=float, default=None)
     return parser
 
 
@@ -55,6 +83,19 @@ def _apply_vlm_settings(args: argparse.Namespace) -> None:
     os.environ["VLM_BACKEND"] = args.vlm_backend
     os.environ["VLM_BASE_URL"] = args.vlm_base_url
     os.environ["VLM_MODEL"] = args.vlm_model
+
+
+def _apply_verifier_settings(args: argparse.Namespace) -> None:
+    mode = getattr(args, "verifier_mode", None)
+    if mode is not None:
+        if mode == "task":
+            os.environ.pop("GYM_ANYTHING_VERIFIER_MODE", None)
+        else:
+            os.environ["GYM_ANYTHING_VERIFIER_MODE"] = mode
+    for attr, env_var in _VERIFIER_CLI_ENV.items():
+        value = getattr(args, attr, None)
+        if value is not None:
+            os.environ[env_var] = str(value)
 
 
 def _configure_logging() -> None:
@@ -85,6 +126,7 @@ def _load_task_description(env, env_dir: str, task_id: str) -> str | None:
 
 def run_single(args: argparse.Namespace) -> int:
     _apply_vlm_settings(args)
+    _apply_verifier_settings(args)
 
     env = from_config(args.env_dir, task_id=args.task)
     try:
