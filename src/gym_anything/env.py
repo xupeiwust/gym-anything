@@ -53,10 +53,22 @@ class GymAnythingEnv:
         self._env_root: Optional[Path] = None
         self._task_root: Optional[Path] = None
         self._verifier = VerifierRunner()
+        self._verifier_overrides: Dict[str, str] = {}
         self._reward_fn = None
         self._roles = []
         self._turn_based = False
         self._turn_idx = 0
+
+    def set_verifier_overrides(self, overrides: Optional[Dict[str, Any]]) -> None:
+        """Set per-environment verifier and VLM overrides."""
+        if not overrides:
+            self._verifier_overrides = {}
+            return
+        self._verifier_overrides = {
+            str(key): str(value)
+            for key, value in overrides.items()
+            if value is not None
+        }
 
     def _select_runner(self, spec: EnvSpec) -> BaseRunner:
         """Select the appropriate runner based on environment and configuration.
@@ -939,6 +951,7 @@ class GymAnythingEnv:
                 episode_dir=self._episode_dir,
                 env_root=self._env_root,
                 task_root=self._task_root,
+                verifier_env=self._verifier_overrides,
             )
             summary["verifier"] = result
         # Write summary

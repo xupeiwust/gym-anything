@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import json
 import os
-from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 from ..vlm import DEFAULT_LOCAL_URL, DEFAULT_MODELS, parse_vlm_json, query_vlm
 
@@ -29,22 +28,31 @@ class VLMChecklistConfig:
     frame_strategy: str = "legacy_every_third"
     completion_threshold: float = 80.0
     integrity_threshold: float = 0.75
+    timeout: Optional[int] = None
 
     @classmethod
-    def from_spec(cls, spec: Any) -> "VLMChecklistConfig":
+    def from_spec(
+        cls,
+        spec: Any,
+        verifier_env: Optional[Dict[str, str]] = None,
+    ) -> "VLMChecklistConfig":
         raw = _extract_vlm_spec(spec)
-        explicit_backend = _env("BACKEND") or raw.get("backend")
-        backend = str(explicit_backend or os.environ.get("VLM_BACKEND", "local"))
-        explicit_model = _env("MODEL") or raw.get("model")
+        explicit_backend = _env("BACKEND", verifier_env) or raw.get("backend")
+        backend = str(explicit_backend or _base_env("VLM_BACKEND", verifier_env, "local")).lower()
+        explicit_model = _env("MODEL", verifier_env) or raw.get("model")
         if explicit_model is not None:
             model = str(explicit_model)
         elif explicit_backend is not None:
             model = DEFAULT_MODELS.get(backend, DEFAULT_MODELS["local"])
         else:
-            model = os.environ.get("VLM_MODEL", DEFAULT_MODELS.get(backend, DEFAULT_MODELS["local"]))
+            model = _base_env(
+                "VLM_MODEL",
+                verifier_env,
+                DEFAULT_MODELS.get(backend, DEFAULT_MODELS["local"]),
+            )
         checklist = (
-            _env("CHECKLIST")
-            or _env("CHECKLIST_PATH")
+            _env("CHECKLIST", verifier_env)
+            or _env("CHECKLIST_PATH", verifier_env)
             or raw.get("checklist")
             or raw.get("checklist_path")
             or cls.checklist
@@ -52,34 +60,68 @@ class VLMChecklistConfig:
         return cls(
             checklist=str(checklist),
             backend=backend,
-            model=model,
-            base_url=_get_str(raw, "base_url", "BASE_URL", os.environ.get("VLM_BASE_URL", DEFAULT_LOCAL_URL)),
-            api_key=_get_str(raw, "api_key", "API_KEY", None),
-            max_retries=_get_int(raw, "max_retries", "MAX_RETRIES", _env_int("VLM_MAX_RETRIES", 3)),
-            temperature=_get_float(raw, "temperature", "TEMPERATURE", cls.temperature),
-            top_p=_get_float(raw, "top_p", "TOP_P", cls.top_p),
-            max_tokens=_get_int(raw, "max_tokens", "MAX_TOKENS", cls.max_tokens),
-            max_frames=_get_int(raw, "max_frames", "MAX_FRAMES", cls.max_frames),
-            frame_strategy=_get_str(raw, "frame_strategy", "FRAME_STRATEGY", cls.frame_strategy)
+            model=str(model),
+            base_url=_get_str(
+                raw,
+                "base_url",
+                "BASE_URL",
+                _base_env("VLM_BASE_URL", verifier_env, DEFAULT_LOCAL_URL),
+                verifier_env,
+            ),
+            api_key=_get_str(raw, "api_key", "API_KEY", _provider_api_key(backend, verifier_env), verifier_env),
+            max_retries=_get_int(
+                raw,
+                "max_retries",
+                "MAX_RETRIES",
+                _env_int("VLM_MAX_RETRIES", 3, verifier_env),
+                verifier_env,
+            ),
+            temperature=_get_float(raw, "temperature", "TEMPERATURE", cls.temperature, verifier_env),
+            top_p=_get_float(raw, "top_p", "TOP_P", cls.top_p, verifier_env),
+            max_tokens=_get_int(raw, "max_tokens", "MAX_TOKENS", cls.max_tokens, verifier_env),
+            max_frames=_get_int(raw, "max_frames", "MAX_FRAMES", cls.max_frames, verifier_env),
+            frame_strategy=_get_str(raw, "frame_strategy", "FRAME_STRATEGY", cls.frame_strategy, verifier_env)
             or cls.frame_strategy,
             completion_threshold=_get_float(
                 raw,
                 "completion_threshold",
                 "COMPLETION_THRESHOLD",
                 cls.completion_threshold,
+                verifier_env,
             ),
             integrity_threshold=_get_float(
                 raw,
                 "integrity_threshold",
                 "INTEGRITY_THRESHOLD",
                 cls.integrity_threshold,
+                verifier_env,
             ),
+            timeout=_env_int_optional("VLM_TIMEOUT", verifier_env),
         )
 
     def public_dict(self) -> Dict[str, Any]:
         data = asdict(self)
         data.pop("api_key", None)
         return data
+
+    def to_vlm_config(self) -> Dict[str, Any]:
+        backend = (self.backend or "local").lower()
+        config: Dict[str, Any] = {
+            "backend": backend,
+            "model": self.model or DEFAULT_MODELS.get(backend, DEFAULT_MODELS["local"]),
+            "max_retries": self.max_retries if self.max_retries is not None else 3,
+        }
+        if self.base_url:
+            config["base_url"] = self.base_url
+        if self.api_key is not None:
+            config["api_key"] = self.api_key
+        elif backend == "local":
+            config["api_key"] = "EMPTY"
+        else:
+            config["api_key"] = ""
+        if self.timeout is not None:
+            config["timeout"] = self.timeout
+        return config
 
 
 def normalize_verifier_mode(mode: Optional[str]) -> Optional[str]:
@@ -91,7 +133,9 @@ def normalize_verifier_mode(mode: Optional[str]) -> Optional[str]:
     return normalized
 
 
-def get_verifier_mode_override() -> Optional[str]:
+def get_verifier_mode_override(verifier_env: Optional[Dict[str, str]] = None) -> Optional[str]:
+    if verifier_env is not None and _VERIFIER_MODE_ENV in verifier_env:
+        return normalize_verifier_mode(verifier_env.get(_VERIFIER_MODE_ENV))
     return normalize_verifier_mode(os.environ.get(_VERIFIER_MODE_ENV))
 
 
@@ -102,8 +146,9 @@ def evaluate_vlm_checklist(
     task_info: Dict[str, Any],
     task_root: Optional[Path],
     env_root: Optional[Path],
+    verifier_env: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
-    config = VLMChecklistConfig.from_spec(spec)
+    config = VLMChecklistConfig.from_spec(spec, verifier_env=verifier_env)
     checklist_path = _resolve_checklist_path(config.checklist, task_root, env_root)
     if checklist_path is None:
         return _failure(
@@ -127,14 +172,14 @@ def evaluate_vlm_checklist(
         task_description=_task_description(task_info),
         image_count=len(images),
     )
-    with _temporary_vlm_env(config):
-        response = query_vlm(
-            prompt=prompt,
-            images=images,
-            max_tokens=config.max_tokens,
-            temperature=config.temperature,
-            top_p=config.top_p,
-        )
+    response = query_vlm(
+        prompt=prompt,
+        images=images,
+        max_tokens=config.max_tokens,
+        temperature=config.temperature,
+        top_p=config.top_p,
+        config=config.to_vlm_config(),
+    )
 
     if not response.get("success"):
         return _failure(
@@ -457,22 +502,63 @@ def _default_feedback(scores: Dict[str, Any]) -> str:
     return f"VLM checklist score {score}; integrity {integrity}."
 
 
-def _env(name: str) -> Optional[str]:
-    value = os.environ.get(_CHECKLIST_ENV_PREFIX + name)
+def _base_env(
+    name: str,
+    verifier_env: Optional[Dict[str, str]] = None,
+    default: Optional[str] = None,
+) -> Optional[str]:
+    if verifier_env is not None and name in verifier_env:
+        value = verifier_env.get(name)
+        return default if value in (None, "") else str(value)
+    return os.environ.get(name, default)
+
+
+def _env(name: str, verifier_env: Optional[Dict[str, str]] = None) -> Optional[str]:
+    key = _CHECKLIST_ENV_PREFIX + name
+    if verifier_env is not None and key in verifier_env:
+        value = verifier_env.get(key)
+        return None if value in (None, "") else str(value)
+    value = os.environ.get(key)
     if value is None or value == "":
         return None
     return value
 
 
-def _env_int(name: str, default: int) -> int:
+def _env_int(name: str, default: int, verifier_env: Optional[Dict[str, str]] = None) -> int:
     try:
-        return int(os.environ.get(name, default))
+        return int(_base_env(name, verifier_env, str(default)))
     except (TypeError, ValueError):
         return default
 
 
-def _get_str(raw: Dict[str, Any], key: str, env_suffix: str, default: Optional[str]) -> Optional[str]:
-    env_value = _env(env_suffix)
+def _env_int_optional(name: str, verifier_env: Optional[Dict[str, str]] = None) -> Optional[int]:
+    value = _base_env(name, verifier_env, None)
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _provider_api_key(backend: str, verifier_env: Optional[Dict[str, str]] = None) -> Optional[str]:
+    if backend == "openai":
+        return _base_env("OPENAI_API_KEY", verifier_env, "")
+    if backend == "anthropic":
+        return _base_env("ANTHROPIC_API_KEY", verifier_env, "")
+    if backend == "gemini":
+        return _base_env("GEMINI_API_KEY", verifier_env, "")
+    return _base_env("VLM_API_KEY", verifier_env, "EMPTY")
+
+
+def _get_str(
+    raw: Dict[str, Any],
+    key: str,
+    env_suffix: str,
+    default: Optional[str],
+    verifier_env: Optional[Dict[str, str]] = None,
+) -> Optional[str]:
+    env_value = _env(env_suffix, verifier_env)
     if env_value is not None:
         return env_value
     value = raw.get(key)
@@ -481,8 +567,14 @@ def _get_str(raw: Dict[str, Any], key: str, env_suffix: str, default: Optional[s
     return str(value)
 
 
-def _get_int(raw: Dict[str, Any], key: str, env_suffix: str, default: Optional[int]) -> Optional[int]:
-    value = _env(env_suffix)
+def _get_int(
+    raw: Dict[str, Any],
+    key: str,
+    env_suffix: str,
+    default: Optional[int],
+    verifier_env: Optional[Dict[str, str]] = None,
+) -> Optional[int]:
+    value = _env(env_suffix, verifier_env)
     if value is None:
         value = raw.get(key)
     if value is None:
@@ -493,8 +585,14 @@ def _get_int(raw: Dict[str, Any], key: str, env_suffix: str, default: Optional[i
         return default
 
 
-def _get_float(raw: Dict[str, Any], key: str, env_suffix: str, default: float) -> float:
-    value = _env(env_suffix)
+def _get_float(
+    raw: Dict[str, Any],
+    key: str,
+    env_suffix: str,
+    default: float,
+    verifier_env: Optional[Dict[str, str]] = None,
+) -> float:
+    value = _env(env_suffix, verifier_env)
     if value is None:
         value = raw.get(key)
     return _coerce_float(value, default)
@@ -505,38 +603,6 @@ def _coerce_float(value: Any, default: float) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
-
-
-@contextmanager
-def _temporary_vlm_env(config: VLMChecklistConfig) -> Iterator[None]:
-    overrides: Dict[str, str] = {}
-    if config.backend:
-        overrides["VLM_BACKEND"] = config.backend
-    if config.model:
-        overrides["VLM_MODEL"] = config.model
-    if config.base_url:
-        overrides["VLM_BASE_URL"] = config.base_url
-    if config.max_retries is not None:
-        overrides["VLM_MAX_RETRIES"] = str(config.max_retries)
-    if config.api_key:
-        backend = (config.backend or os.environ.get("VLM_BACKEND", "local")).lower()
-        if backend == "openai":
-            overrides["OPENAI_API_KEY"] = config.api_key
-        elif backend == "anthropic":
-            overrides["ANTHROPIC_API_KEY"] = config.api_key
-        else:
-            overrides["VLM_API_KEY"] = config.api_key
-
-    old_values = {key: os.environ.get(key) for key in overrides}
-    try:
-        os.environ.update(overrides)
-        yield
-    finally:
-        for key, old_value in old_values.items():
-            if old_value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = old_value
 
 
 __all__ = [

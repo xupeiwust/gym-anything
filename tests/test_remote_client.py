@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -70,6 +71,33 @@ class RemoteClientResetPolicyTests(unittest.TestCase):
         )
         self.assertEqual(env.max_steps, 3)
         self.assertEqual(env.timeout_sec, 120)
+
+    def test_create_remote_env_sends_verifier_overrides(self) -> None:
+        response = mock.Mock()
+        response.json.return_value = {"env_id": "env-123"}
+        verifier_env = {
+            "GYM_ANYTHING_VERIFIER_MODE": "task",
+            "GYM_ANYTHING_VLM_CHECKLIST_BACKEND": "gemini",
+            "GYM_ANYTHING_VLM_CHECKLIST_MODEL": "gemini-3-flash-preview",
+            "VLM_TIMEOUT": "240",
+            "GEMINI_API_KEY": "secret-key",
+        }
+
+        with mock.patch.dict(os.environ, verifier_env, clear=True), \
+             mock.patch("gym_anything.remote.client.requests.post", return_value=response) as post, \
+             mock.patch.object(RemoteGymEnv, "_setup_cache"):
+            RemoteGymEnv.from_config(
+                remote_url="http://localhost:5000",
+                env_dir="demo-env",
+                task_id="demo-task",
+            )
+
+        response.raise_for_status.assert_called_once()
+        payload = post.call_args.kwargs["json"]
+        self.assertEqual(payload["env_dir"], "demo-env")
+        self.assertEqual(payload["task_id"], "demo-task")
+        self.assertEqual(payload["verifier_env"], verifier_env)
+        self.assertNotIn("verifier_env", payload.get("metadata", {}))
 
 
 if __name__ == "__main__":

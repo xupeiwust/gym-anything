@@ -35,6 +35,48 @@ from gym_anything.specs import EnvSpec, TaskSpec
 from gym_anything.utils.yaml import load_structured_file
 
 
+_REMOTE_VERIFIER_ENV_KEYS = (
+    "GYM_ANYTHING_VERIFIER_MODE",
+    "GYM_ANYTHING_VLM_CHECKLIST_MODEL",
+    "GYM_ANYTHING_VLM_CHECKLIST_BACKEND",
+    "GYM_ANYTHING_VLM_CHECKLIST_BASE_URL",
+    "GYM_ANYTHING_VLM_CHECKLIST_API_KEY",
+    "GYM_ANYTHING_VLM_CHECKLIST_CHECKLIST",
+    "GYM_ANYTHING_VLM_CHECKLIST_CHECKLIST_PATH",
+    "GYM_ANYTHING_VLM_CHECKLIST_MAX_RETRIES",
+    "GYM_ANYTHING_VLM_CHECKLIST_TEMPERATURE",
+    "GYM_ANYTHING_VLM_CHECKLIST_TOP_P",
+    "GYM_ANYTHING_VLM_CHECKLIST_MAX_TOKENS",
+    "GYM_ANYTHING_VLM_CHECKLIST_MAX_FRAMES",
+    "GYM_ANYTHING_VLM_CHECKLIST_FRAME_STRATEGY",
+    "GYM_ANYTHING_VLM_CHECKLIST_COMPLETION_THRESHOLD",
+    "GYM_ANYTHING_VLM_CHECKLIST_INTEGRITY_THRESHOLD",
+    "VLM_BACKEND",
+    "VLM_MODEL",
+    "VLM_BASE_URL",
+    "VLM_API_KEY",
+    "VLM_MAX_RETRIES",
+    "VLM_TIMEOUT",
+    "OPENAI_API_KEY",
+    "ANTHROPIC_API_KEY",
+    "GEMINI_API_KEY",
+)
+
+
+def _clean_verifier_env(values: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    if not isinstance(values, dict):
+        return {}
+    return {str(key): str(value) for key, value in values.items() if value is not None}
+
+
+def _capture_verifier_env() -> Dict[str, str]:
+    return {
+        key: value
+        for key in _REMOTE_VERIFIER_ENV_KEYS
+        if (value := os.environ.get(key)) not in (None, "")
+    }
+
+
 class RemoteGymEnv:
     """Remote environment client that mirrors GymAnythingEnv interface.
     
@@ -46,7 +88,8 @@ class RemoteGymEnv:
     def __init__(self, remote_url: str, env_spec: Optional[Union[EnvSpec, Dict[str, Any]]] = None,
                  task_spec: Optional[Union[TaskSpec, Dict[str, Any]]] = None,
                  env_dir: Optional[str] = None, task_id: Optional[str] = None,
-                 timeout: int = 300, worker_reset_policy: Optional[str] = "core"):
+                 timeout: int = 300, worker_reset_policy: Optional[str] = "core",
+                 verifier_env: Optional[Dict[str, Any]] = None):
         """Initialize remote environment client.
         
         Args:
@@ -58,6 +101,8 @@ class RemoteGymEnv:
             timeout: Request timeout in seconds (default: 300)
             worker_reset_policy: Worker-local post-reset policy. Defaults to
                 "core" so remote reset matches local reset behavior.
+            verifier_env: Optional per-environment verifier/VLM overrides sent
+                to the worker. Defaults to the current process verifier env.
         """
         self.remote_url = remote_url.rstrip('/')
         self.timeout = timeout
@@ -69,6 +114,11 @@ class RemoteGymEnv:
         self._timeout_sec_override: Optional[int] = None
         self._closed = False
         self.worker_reset_policy = worker_reset_policy
+        self.verifier_env = (
+            _capture_verifier_env()
+            if verifier_env is None
+            else _clean_verifier_env(verifier_env)
+        )
         
         # Store specs for reference
         self.env_spec = env_spec
@@ -115,6 +165,9 @@ class RemoteGymEnv:
                     # Convert TaskSpec to dict
                     from dataclasses import asdict
                     data["task_spec"] = asdict(task_spec)
+
+        if self.verifier_env:
+            data["verifier_env"] = self.verifier_env
         
         # Send request
         response = requests.post(
@@ -522,7 +575,8 @@ class RemoteGymEnv:
     @classmethod
     def from_config(cls, remote_url: str, env_dir: Union[str, os.PathLike],
                     task_id: Optional[str] = None, timeout: int = 300,
-                    worker_reset_policy: Optional[str] = "core") -> RemoteGymEnv:
+                    worker_reset_policy: Optional[str] = "core",
+                    verifier_env: Optional[Dict[str, Any]] = None) -> RemoteGymEnv:
         """Create remote environment from config directory.
         
         This mirrors the gym_anything.api.from_config() interface.
@@ -533,6 +587,7 @@ class RemoteGymEnv:
             task_id: Optional task ID
             timeout: Request timeout in seconds
             worker_reset_policy: Worker-local post-reset policy
+            verifier_env: Optional per-environment verifier/VLM overrides
             
         Returns:
             RemoteGymEnv instance
@@ -543,12 +598,14 @@ class RemoteGymEnv:
             task_id=task_id,
             timeout=timeout,
             worker_reset_policy=worker_reset_policy,
+            verifier_env=verifier_env,
         )
     
     @classmethod
     def make(cls, remote_url: str, env: Union[str, os.PathLike, Dict[str, Any], EnvSpec],
              task: Optional[Union[str, os.PathLike, Dict[str, Any], TaskSpec]] = None,
-             timeout: int = 300, worker_reset_policy: Optional[str] = "core") -> RemoteGymEnv:
+             timeout: int = 300, worker_reset_policy: Optional[str] = "core",
+             verifier_env: Optional[Dict[str, Any]] = None) -> RemoteGymEnv:
         """Create remote environment from spec.
         
         This mirrors the gym_anything.api.make() interface.
@@ -559,6 +616,7 @@ class RemoteGymEnv:
             task: Task spec (path, dict, or TaskSpec)
             timeout: Request timeout in seconds
             worker_reset_policy: Worker-local post-reset policy
+            verifier_env: Optional per-environment verifier/VLM overrides
             
         Returns:
             RemoteGymEnv instance
@@ -578,6 +636,7 @@ class RemoteGymEnv:
             task_spec=task_spec,
             timeout=timeout,
             worker_reset_policy=worker_reset_policy,
+            verifier_env=verifier_env,
         )
     
     def __repr__(self) -> str:

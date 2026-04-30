@@ -58,25 +58,51 @@ DEFAULT_MODELS = {
 DEFAULT_LOCAL_URL = "http://localhost:8080/v1"
 
 
-def get_vlm_config() -> Dict[str, Any]:
-    """Return VLM configuration derived from environment variables."""
-    backend = os.environ.get("VLM_BACKEND", "local").lower()
+def _override_or_env(
+    overrides: Optional[Dict[str, Any]],
+    key: str,
+    default: Optional[str] = None,
+) -> Optional[str]:
+    if overrides is not None and key in overrides:
+        value = overrides[key]
+        return None if value is None else str(value)
+    return os.environ.get(key, default)
+
+
+def _int_value(value: Any, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def get_vlm_config(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Return VLM configuration derived from overrides and environment variables."""
+    backend = str(_override_or_env(overrides, "VLM_BACKEND", "local") or "local").lower()
 
     config: Dict[str, Any] = {
         "backend": backend,
-        "model": os.environ.get("VLM_MODEL", DEFAULT_MODELS.get(backend, DEFAULT_MODELS["local"])),
-        "max_retries": int(os.environ.get("VLM_MAX_RETRIES", "3")),
+        "model": _override_or_env(
+            overrides,
+            "VLM_MODEL",
+            DEFAULT_MODELS.get(backend, DEFAULT_MODELS["local"]),
+        ),
+        "max_retries": _int_value(_override_or_env(overrides, "VLM_MAX_RETRIES", "3"), 3),
     }
 
     if backend == "local":
-        config["base_url"] = os.environ.get("VLM_BASE_URL", DEFAULT_LOCAL_URL)
-        config["api_key"] = os.environ.get("VLM_API_KEY", "EMPTY")
+        config["base_url"] = _override_or_env(overrides, "VLM_BASE_URL", DEFAULT_LOCAL_URL)
+        config["api_key"] = _override_or_env(overrides, "VLM_API_KEY", "EMPTY")
     elif backend == "anthropic":
-        config["api_key"] = os.environ.get("ANTHROPIC_API_KEY", "")
+        config["api_key"] = _override_or_env(overrides, "ANTHROPIC_API_KEY", "")
     elif backend == "gemini":
-        config["api_key"] = os.environ.get("GEMINI_API_KEY", "")
+        config["api_key"] = _override_or_env(overrides, "GEMINI_API_KEY", "")
     elif backend == "openai":
-        config["api_key"] = os.environ.get("OPENAI_API_KEY", "")
+        config["api_key"] = _override_or_env(overrides, "OPENAI_API_KEY", "")
+
+    timeout = _override_or_env(overrides, "VLM_TIMEOUT")
+    if timeout is not None:
+        config["timeout"] = _int_value(timeout, 180)
 
     return config
 
@@ -304,8 +330,6 @@ def _query_gemini(
     if not model.startswith("gemini/"):
         model = f"gemini/{model}"
 
-    old_key = os.environ.get("GEMINI_API_KEY")
-    os.environ["GEMINI_API_KEY"] = config["api_key"]
     try:
         for attempt in range(config["max_retries"]):
             try:
@@ -315,7 +339,8 @@ def _query_gemini(
                     max_tokens=max_tokens,
                     temperature=temperature,
                     top_p=top_p,
-                    timeout=int(os.environ.get("VLM_TIMEOUT", "180")),
+                    timeout=int(config.get("timeout", os.environ.get("VLM_TIMEOUT", "180"))),
+                    api_key=config["api_key"],
                 )
                 text = response.choices[0].message.content or ""
                 return {"success": True, "response": text, "parsed": parse_vlm_json(text), "error": ""}
@@ -328,11 +353,6 @@ def _query_gemini(
     except Exception as e:
         logger.error("Gemini error: %s", e)
         return _error_result(str(e))
-    finally:
-        if old_key is None:
-            os.environ.pop("GEMINI_API_KEY", None)
-        else:
-            os.environ["GEMINI_API_KEY"] = old_key
 
 
 def _error_result(msg: str) -> Dict[str, Any]:
@@ -350,6 +370,7 @@ def query_vlm(
     max_tokens: int = 2048,
     temperature: float = 0.1,
     top_p: float = 0.95,
+    config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Query a VLM with a prompt and optional images.
@@ -361,6 +382,7 @@ def query_vlm(
         max_tokens: Maximum tokens in the response.
         temperature: Sampling temperature (lower = more deterministic).
         top_p: Top-p sampling parameter.
+        config: Optional explicit VLM config. Defaults to environment config.
 
     Returns:
         Dict with keys:
@@ -369,7 +391,7 @@ def query_vlm(
             parsed (dict): Parsed JSON extracted from response (or {}).
             error (str): Error message if success is False.
     """
-    config = get_vlm_config()
+    config = config or get_vlm_config()
 
     # Merge image lists
     image_list = list(images or [])

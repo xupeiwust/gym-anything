@@ -238,7 +238,8 @@ class EnvironmentManager:
                           task_spec_dict: Optional[Dict[str, Any]] = None,
                           env_dir: Optional[str] = None,
                           task_id: Optional[str] = None,
-                          metadata: Optional[Dict[str, Any]] = None) -> str:
+                          metadata: Optional[Dict[str, Any]] = None,
+                          verifier_env: Optional[Dict[str, Any]] = None) -> str:
         """Create a new environment instance and return its ID."""
         env_id = str(uuid.uuid4())
 
@@ -249,6 +250,9 @@ class EnvironmentManager:
                 env_spec = EnvSpec.from_dict(env_spec_dict) if env_spec_dict else None
                 task_spec = TaskSpec.from_dict(task_spec_dict) if task_spec_dict else None
                 env = make(env_spec, task_spec)
+
+            if verifier_env:
+                env.set_verifier_overrides(verifier_env)
 
             with registry_lock:
                 env_registry[env_id] = {
@@ -616,13 +620,15 @@ def create_environment():
         env_dir = data.get("env_dir")
         task_id = data.get("task_id")
         metadata = data.get("metadata", {})
+        verifier_env = data.get("verifier_env") or {}
 
         env_id = env_manager.create_environment(
             env_spec_dict=env_spec_dict,
             task_spec_dict=task_spec_dict,
             env_dir=env_dir,
             task_id=task_id,
-            metadata=metadata
+            metadata=metadata,
+            verifier_env=verifier_env,
         )
 
         return jsonify({"env_id": env_id}), 201

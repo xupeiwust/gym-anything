@@ -10,10 +10,21 @@ from typing import Any, Dict, Optional
 
 from ..runtime.runners.base import BaseRunner
 from ..specs import EnvSpec, TaskSpec
-from ..vlm import query_vlm, sample_trajectory_frames, get_final_screenshot, get_first_screenshot
+from ..vlm import query_vlm, sample_trajectory_frames, get_final_screenshot, get_first_screenshot, get_vlm_config
 from .contracts import SUPPORTED_SUCCESS_MODES
 from .imports import verifier_import_context
 from .vlm_checklist import evaluate_vlm_checklist, get_verifier_mode_override
+
+
+def _query_vlm_with_env(verifier_env: Optional[Dict[str, str]] = None):
+    if not verifier_env:
+        return query_vlm
+
+    def _query(*args, **kwargs):
+        kwargs.setdefault("config", get_vlm_config(verifier_env))
+        return query_vlm(*args, **kwargs)
+
+    return _query
 
 
 class VerifierRunner:
@@ -27,9 +38,10 @@ class VerifierRunner:
         episode_dir: Path,
         env_root: Optional[Path],
         task_root: Optional[Path],
+        verifier_env: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         task_mode = task_spec.success.mode
-        override_mode = get_verifier_mode_override()
+        override_mode = get_verifier_mode_override(verifier_env)
         mode = override_mode or task_mode
         spec = task_spec.success.spec or {}
         report: Dict[str, Any] = {
@@ -53,7 +65,16 @@ class VerifierRunner:
         # breakpoint()
         if mode == "program":
             report.update(
-                self._run_program_verifier(spec, episode_dir, env_spec, task_spec, task_root, env_root, runner)
+                self._run_program_verifier(
+                    spec,
+                    episode_dir,
+                    env_spec,
+                    task_spec,
+                    task_root,
+                    env_root,
+                    runner,
+                    verifier_env,
+                )
             )
         elif mode == "image_match":
             report.update(
@@ -69,6 +90,7 @@ class VerifierRunner:
                 task_root,
                 env_root,
                 runner,
+                verifier_env,
             )
             if prog.get("decided"):
                 prog["mode"] = "program"
@@ -86,7 +108,15 @@ class VerifierRunner:
             return img
         elif mode == "vlm_checklist":
             report.update(
-                self._run_vlm_checklist(spec, episode_dir, env_spec, task_spec, task_root, env_root)
+                self._run_vlm_checklist(
+                    spec,
+                    episode_dir,
+                    env_spec,
+                    task_spec,
+                    task_root,
+                    env_root,
+                    verifier_env,
+                )
             )
         return report
 
@@ -99,6 +129,7 @@ class VerifierRunner:
         task_root: Optional[Path],
         env_root: Optional[Path],
         runner: Optional[BaseRunner] = None,
+        verifier_env: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         target = spec if isinstance(spec, str) else spec.get("program") or spec.get("target")
         if not target:
@@ -125,7 +156,7 @@ class VerifierRunner:
         # without needing to import from gym_anything (verifiers are
         # loaded via spec_from_file_location and may not have gym_anything
         # on their import path).
-        env_info["query_vlm"] = query_vlm
+        env_info["query_vlm"] = _query_vlm_with_env(verifier_env)
         env_info["sample_trajectory_frames"] = sample_trajectory_frames
         env_info["get_final_screenshot"] = get_final_screenshot
         env_info["get_first_screenshot"] = get_first_screenshot
@@ -231,6 +262,7 @@ class VerifierRunner:
         task_spec: TaskSpec,
         task_root: Optional[Path],
         env_root: Optional[Path],
+        verifier_env: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         traj = self._load_traj(episode_dir)
         task_info = {
@@ -246,6 +278,7 @@ class VerifierRunner:
             task_info=task_info,
             task_root=task_root,
             env_root=env_root,
+            verifier_env=verifier_env,
         )
 
     def _run_image_match(

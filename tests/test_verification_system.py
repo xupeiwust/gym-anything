@@ -493,6 +493,79 @@ class VerificationSystemTests(unittest.TestCase):
             self.assertEqual(result["task_mode"], "program")
             self.assertEqual(result["config"]["model"], "env-judge")
 
+    def test_verifier_env_payload_overrides_worker_env(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            task_dir = root / "tasks" / "demo"
+            episode_dir = root / "episode"
+            task_dir.mkdir(parents=True)
+            episode_dir.mkdir()
+            (episode_dir / "frame_00000.png").write_bytes(b"fake-png")
+            _write_json(
+                task_dir / "vlm_checklist.json",
+                {
+                    "task_completion": [{"id": "done", "points": 100}],
+                    "integrity": [],
+                },
+            )
+            env_spec = EnvSpec.from_dict(
+                {
+                    "id": "test-env",
+                    "runner": "local",
+                    "observation": [{"type": "rgb_screen", "resolution": [640, 480]}],
+                    "action": [{"type": "mouse"}],
+                }
+            )
+            task_spec = TaskSpec.from_dict(
+                {
+                    "id": "demo",
+                    "description": "Do the thing.",
+                    "success": {"mode": "program", "spec": {"program": "verifier.py::verify"}},
+                }
+            )
+            verifier_env = {
+                "GYM_ANYTHING_VERIFIER_MODE": "vlm_checklist",
+                "GYM_ANYTHING_VLM_CHECKLIST_BACKEND": "gemini",
+                "GYM_ANYTHING_VLM_CHECKLIST_MODEL": "request-judge",
+                "GEMINI_API_KEY": "request-secret",
+                "VLM_TIMEOUT": "123",
+            }
+            worker_env = {
+                **_VERIFIER_ENV_DEFAULTS,
+                "GYM_ANYTHING_VERIFIER_MODE": "program",
+                "GYM_ANYTHING_VLM_CHECKLIST_MODEL": "worker-judge",
+            }
+            vlm_response = {
+                "success": True,
+                "response": "{}",
+                "parsed": {
+                    "task_completion": [
+                        {"id": "done", "verdict": "pass", "confidence": 1.0, "evidence": "done"}
+                    ],
+                    "integrity": [],
+                },
+            }
+
+            with mock.patch.dict(os.environ, worker_env, clear=False), \
+                 mock.patch("gym_anything.verification.vlm_checklist.query_vlm", return_value=vlm_response) as query:
+                result = VerifierRunner().evaluate(
+                    runner=mock.Mock(),
+                    env_spec=env_spec,
+                    task_spec=task_spec,
+                    episode_dir=episode_dir,
+                    env_root=root,
+                    task_root=task_dir,
+                    verifier_env=verifier_env,
+                )
+
+            self.assertTrue(result["passed"])
+            self.assertEqual(result["mode"], "vlm_checklist")
+            self.assertEqual(result["mode_source"], "env")
+            self.assertEqual(result["config"]["model"], "request-judge")
+            self.assertEqual(query.call_args.kwargs["config"]["backend"], "gemini")
+            self.assertEqual(query.call_args.kwargs["config"]["api_key"], "request-secret")
+            self.assertEqual(query.call_args.kwargs["config"]["timeout"], 123)
+
     def test_local_runner_hint_is_honored(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

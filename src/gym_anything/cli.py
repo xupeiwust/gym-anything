@@ -93,7 +93,7 @@ def _apply_verifier_overrides(args: argparse.Namespace) -> None:
     mode = getattr(args, "verifier_mode", None)
     if mode is not None:
         if mode == "task":
-            os.environ.pop("GYM_ANYTHING_VERIFIER_MODE", None)
+            os.environ["GYM_ANYTHING_VERIFIER_MODE"] = "task"
         else:
             os.environ["GYM_ANYTHING_VERIFIER_MODE"] = mode
     for attr, env_var in _VERIFIER_CLI_ENV.items():
