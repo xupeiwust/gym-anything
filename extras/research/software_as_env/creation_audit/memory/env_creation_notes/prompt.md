@@ -446,7 +446,7 @@ echo "=== Task setup complete ==="
 ```
 
 **CRITICAL**:
-1. Make sure you are using **real data** to setup tasks. Fake or Mock or Synthetic Data is strictly not allowed. You are free to temporarily download and check data format in host machine on /scratch/pranjala/tmp/env_name folder.
+1. Make sure you are using **real data** to setup tasks. Fake or Mock or Synthetic Data is strictly not allowed. You are free to temporarily download and check data format on the host machine in any scratch directory you have write access to (e.g. `/tmp/<env_name>/` or whatever scratch path the host provides).
 2. Use web search if you cannot find the correct data directly, but do not compromise on task quality.
 3. Large data files that would be commonly used across multiple (3 or more) tasks should be stored in the environment installation step.
 4. The **task start state must be deterministic and correct** — the application must be in the exact right screen/view/state with real data loaded, ready for the agent to begin. Test this interactively using screenshot-based UI grounding to confirm what the agent will see (Claude: `visual_grounding` MCP tool; Codex: native screenshot understanding or `python ask_cua.py --question ... --screenshot_path ...`).

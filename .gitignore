@@ -35,3 +35,6 @@ venv/
 scratch
 examples_new
 logs
+# creation_audit pipeline outputs (extras/research/software_as_env/creation_audit/method.py)
+audits/
+creation_audit_logs/

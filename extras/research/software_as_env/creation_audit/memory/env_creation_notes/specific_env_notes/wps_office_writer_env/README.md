@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # WPS Office Writer Environment Notes
 
 ## Overview
@@ -159,7 +166,9 @@ Format a job application letter with addresses, salutation, and closing.
 **Real Data Used**:
 - **Recipient**: Microsoft Corporation, One Microsoft Way, Redmond, WA 98052
 - **Data Source**: Microsoft official office locations page (https://www.microsoft.com/en-us/about/office-locations)
-- **Recipient Name**: Kathleen Hogan (actual Microsoft Chief People Officer)
+- **Recipient Name**: a fictional placeholder addressee (e.g. `Hiring Manager`
+  or any synthetic name); do not target the seed task at a real, identifiable
+  individual.
 
 ### 2. create_data_table
 Create a sales report with a formatted data table using real Amazon financial data.

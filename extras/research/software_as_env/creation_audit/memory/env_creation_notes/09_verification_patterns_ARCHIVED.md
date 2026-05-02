@@ -411,7 +411,7 @@ if vlm_result.get('brain_scan_visible'):
 passed = programmatic_pass and vlm_pass
 ```
 
-See `extras/research/software_as_env/creation_audit/memory/env_creation_notes/verifiers/VLM_EVALUATOR_DESIGN_GUIDE.md` for comprehensive VLM verification patterns.
+See `extras/research/software_as_env/creation_audit/memory/env_creation_notes/verifiers/VLM_EVALUATOR_DESIGN_GUIDE_ARCHIVED.md` for comprehensive VLM verification patterns.
 
 ## Desktop Application Verification Checklist
 

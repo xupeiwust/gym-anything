@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # iDempiere Environment Notes
 
 ## Installation
@@ -105,8 +112,10 @@ docker exec idempiere-postgres psql -U adempiere -d idempiere -t -A -c "SQL_HERE
 
 ## Docker Hub Rate Limits
 - Anonymous Docker pulls hit rate limits on fresh QEMU boots
-- Credentials stored in `config/.dockerhub_credentials` and sourced in `setup_idempiere.sh`
-- `DOCKERHUB_USERNAME=hackear2041`, token in file
+- Credentials are loaded from an env-local file referenced via
+  `EnvSpec.security.secrets_ref` (or a mounted `config/.dockerhub_credentials`
+  that is gitignored). Set `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` there;
+  do **not** commit either to this notes file.
 
 ## Post-Start Checkpoint State
 - Checkpoint `checkpoint_aadc8080200860fa_post_start.qcow2` (~11GB) exists

@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # New Environment Onboarding
 
 When you are handed a software environment you have never worked with before, the natural instinct is to immediately start designing tasks. Resist this. Skipping the exploration phase produces tasks that are unverifiable, mis-calibrated, or impossible for agents to attempt. This document gives a systematic protocol for onboarding to any new environment before writing a single task file.

@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # File-Content Verification and Offline Verifier Testing
 
 ## Overview
@@ -69,7 +76,7 @@ def make_env_missing():
     return {'copy_from_env': copy_from_env}
 
 # Load verifier
-mod = load_verifier('examples/myenv/tasks/mytask/verifier.py')
+mod = load_verifier('benchmarks/cua_world/environments/myenv/tasks/mytask/verifier.py')
 task_info = {'metadata': {'result_file': 'C:\\Users\\Docker\\mytask_result.json'}}
 
 # Do-nothing test: result file doesn't exist

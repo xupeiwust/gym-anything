@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Linux Desktop Environment Patterns
 
 ## Overview
@@ -316,12 +323,12 @@ echo "=== Export Complete ==="
 import os
 from gym_anything.api import from_config
 
-env = from_config("examples/<env_name>", task_id="<task_name>")
+env = from_config("benchmarks/cua_world/environments/<env_name>", task_id="<task_name>")
 obs = env.reset(seed=42, use_cache=True, cache_level="pre_start", use_savevm=True)
 
 # Take screenshot
 env._runner.exec_capture('DISPLAY=:1 import -window root /tmp/evidence.png 2>/dev/null || DISPLAY=:1 scrot /tmp/evidence.png 2>/dev/null')
-env._runner.copy_from('/tmp/evidence.png', f'examples/<env_name>/evidence_docs/<task_name>_screenshot.png')
+env._runner.copy_from('/tmp/evidence.png', f'benchmarks/cua_world/environments/<env_name>/evidence_docs/<task_name>_screenshot.png')
 
 # Check database / filesystem evidence
 output = env._runner.exec_capture('docker exec <mysql_container> mysql -u user -ppass db -N -B -e "SELECT ..."')

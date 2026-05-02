@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Task Creation Checklist
 
 ## Overview
@@ -112,7 +119,7 @@ Use this checklist for every task you create. Check off items as you complete th
 
 ### Set Permissions
 ```bash
-chmod +x examples/<env_name>/tasks/<task_name>/*.sh
+chmod +x benchmarks/cua_world/environments/<env_name>/tasks/<task_name>/*.sh
 ```
 - [ ] All .sh files are executable (verify with `ls -la`)
 
@@ -141,7 +148,7 @@ These run in seconds with no VM — see `13_file_content_verification_and_offlin
 Boot the environment and verify the scaffolding works end-to-end:
 
 ```python
-env = from_config("examples/<env_name>", task_id="<task_name>")
+env = from_config("benchmarks/cua_world/environments/<env_name>", task_id="<task_name>")
 obs = env.reset(seed=42, use_cache=False)
 ```
 - [ ] Environment starts without errors
@@ -158,7 +165,7 @@ print(result)  # Should show score=0, passed=False
 ### Evidence Collection (Optional)
 
 Useful for debugging and review, but not a blocking requirement:
-- [ ] Screenshot saved to `examples/<env>/evidence_docs/`
+- [ ] Screenshot saved to `benchmarks/cua_world/environments/<env>/evidence_docs/`
 - [ ] Evidence JSON created with database verification
 
 ### Full Completion Test — NOT REQUIRED
@@ -169,9 +176,16 @@ Do not design tasks to be solvable by the task creator — design them to be sol
 
 ## Phase 5: Finalization
 
-### Update constants.py
-- [ ] Environment task loader added (if new environment)
-- [ ] Verify task appears in `ENV_TASK_SPLITS`
+### Register the task in the splits registry
+- [ ] (New env only) Drop a `benchmarks/cua_world/splits/<env_name>_split.json`
+      with `train_tasks` / `test_tasks`. Tasks are auto-discovered from
+      `benchmarks/cua_world/environments/<env_name>/tasks/*` and exposed
+      under the `all` split even without a split file, but explicit
+      `train` / `test` partitions require this file. See
+      `02_repository_structure.md` → "Task Registry" for the schema.
+- [ ] Verify the task appears in the registry:
+      `python3 -c "from benchmarks.cua_world.registry import get_tasks_for_environment as g; print(g('<env_name>', split='all'))"`
+      (or `gym-anything list --verbose`).
 
 ### Documentation Review
 - [ ] README is complete and accurate

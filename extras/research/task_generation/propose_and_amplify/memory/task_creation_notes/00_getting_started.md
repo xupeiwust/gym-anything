@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Getting Started with Task Creation
 
 ## Welcome
@@ -90,7 +97,7 @@ Read these documents in order:
 from gym_anything.api import from_config
 
 # Load environment without a task
-env = from_config("examples/<env_name>")
+env = from_config("benchmarks/cua_world/environments/<env_name>")
 obs = env.reset(seed=42)
 
 # Get connection info
@@ -107,16 +114,21 @@ env.close()
 
 ### Step 1b: Look Up Who Actually Uses This Software (REQUIRED)
 
-Before choosing a task, consult the occupation/industry data in `task_creation_notes/`:
+Before choosing a task, consult the occupation/industry data shipped with
+this notes folder. The CSVs live at
+`extras/research/task_generation/propose_and_amplify/memory/task_creation_notes/`
+relative to the repo root:
 
 ```python
 import csv, ast
+
+NOTES_DIR = "extras/research/task_generation/propose_and_amplify/memory/task_creation_notes"
 
 # Quick lookup — replace PRODUCT_NAME with the exact name from selected_products.csv
 PRODUCT = "PRODUCT_NAME"
 
 # 1. Top-level context
-with open("task_creation_notes/selected_products.csv") as f:
+with open(f"{NOTES_DIR}/selected_products.csv") as f:
     for r in csv.DictReader(f):
         if r["product"].strip().lower() == PRODUCT.lower():
             print("Categories:", ast.literal_eval(r["category"]))
@@ -124,7 +136,7 @@ with open("task_creation_notes/selected_products.csv") as f:
             break
 
 # 2. Top occupations by economic importance
-with open("task_creation_notes/master_dataset.csv") as f:
+with open(f"{NOTES_DIR}/master_dataset.csv") as f:
     rows = [r for r in csv.DictReader(f)
             if r["product"].strip().lower() == PRODUCT.lower()]
 rows.sort(key=lambda r: float(r["product_gdp_usd"] or 0), reverse=True)
@@ -152,17 +164,18 @@ Create the README.md before any code. The description should state the goal and 
 ### Step 4: Create the Files
 
 ```bash
-mkdir -p examples/<env_name>/tasks/<task_name>
+ENV_DIR=benchmarks/cua_world/environments/<env_name>
+mkdir -p $ENV_DIR/tasks/<task_name>
 
 # Create files (see templates in 06_task_creation_checklist.md)
-touch examples/<env_name>/tasks/<task_name>/README.md
-touch examples/<env_name>/tasks/<task_name>/task.json
-touch examples/<env_name>/tasks/<task_name>/setup_task.sh
-touch examples/<env_name>/tasks/<task_name>/export_result.sh
-touch examples/<env_name>/tasks/<task_name>/verifier.py
+touch $ENV_DIR/tasks/<task_name>/README.md
+touch $ENV_DIR/tasks/<task_name>/task.json
+touch $ENV_DIR/tasks/<task_name>/setup_task.sh
+touch $ENV_DIR/tasks/<task_name>/export_result.sh
+touch $ENV_DIR/tasks/<task_name>/verifier.py
 
 # CRITICAL: Set permissions
-chmod +x examples/<env_name>/tasks/<task_name>/*.sh
+chmod +x $ENV_DIR/tasks/<task_name>/*.sh
 ```
 
 ### Step 5: Test Incrementally
@@ -195,7 +208,7 @@ See **[01_core_principles.md](01_core_principles.md)** (especially the "Summary 
 
 ## Getting Help
 
-- **Environment issues**: See `env_creation_notes/`
+- **Environment issues**: See `extras/research/software_as_env/creation_audit/memory/env_creation_notes/`
 - **Verification patterns**: See `03_verification_patterns.md`
 - **Debugging**: See `05_learnings_best_practices.md`
 - **Task difficulty guidance**: See `01_core_principles.md` "START HERE" section — do not pattern-match on existing tasks for difficulty calibration, as many existing tasks may be too simple

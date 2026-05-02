@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Agent Prompt Template for Task Creation
 
 ## Overview
@@ -27,13 +34,19 @@ Create [NUMBER] complex, realistic tasks that test AI agent capabilities in [DOM
 
 ### 0. Understand Who Uses This Software (REQUIRED FIRST STEP)
 
-Before brainstorming any tasks, look up the software's occupation and industry context from the dataset files at `task_creation_notes/`. This takes 2 minutes and will transform the quality of your tasks.
+Before brainstorming any tasks, look up the software's occupation and industry
+context from the dataset files shipped with this notes folder. The CSVs live
+at `extras/research/task_generation/propose_and_amplify/memory/task_creation_notes/`
+relative to the repo root. This takes 2 minutes and will transform the quality
+of your tasks.
 
 **Step 1 — Quick summary from `selected_products.csv`:**
 ```python
 import csv, ast
 
-with open("task_creation_notes/selected_products.csv") as f:
+NOTES_DIR = "extras/research/task_generation/propose_and_amplify/memory/task_creation_notes"
+
+with open(f"{NOTES_DIR}/selected_products.csv") as f:
     for r in csv.DictReader(f):
         if r["product"].strip().lower() == "[PRODUCT_NAME]".lower():
             print("Categories:", ast.literal_eval(r["category"]))
@@ -47,7 +60,7 @@ with open("task_creation_notes/selected_products.csv") as f:
 ```python
 import csv
 
-with open("task_creation_notes/master_dataset.csv") as f:
+with open(f"{NOTES_DIR}/master_dataset.csv") as f:
     rows = [r for r in csv.DictReader(f)
             if r["product"].strip().lower() == "[PRODUCT_NAME]".lower()]
 
@@ -183,7 +196,7 @@ Before finalizing each task:
 
 ## Customization Examples
 
-Fill in the `## Environment Information` section of the template with your environment's specifics. Include: application name, database type and query command, login credentials, key tables/paths, and sample queries. See existing task directories under `examples/` for real examples.
+Fill in the `## Environment Information` section of the template with your environment's specifics. Include: application name, database type and query command, login credentials, key tables/paths, and sample queries. See existing task directories under `benchmarks/cua_world/environments/` for real examples.
 
 ---
 

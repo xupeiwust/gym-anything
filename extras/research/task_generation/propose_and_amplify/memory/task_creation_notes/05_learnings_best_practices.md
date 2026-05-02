@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Learnings and Best Practices
 
 ## Overview
@@ -21,10 +28,10 @@ This document captures practical lessons about script mechanics, verification pa
 **The Fix**:
 ```bash
 # ALWAYS run this after creating scripts
-chmod +x examples/<env_name>/tasks/<task_name>/*.sh
+chmod +x benchmarks/cua_world/environments/<env_name>/tasks/<task_name>/*.sh
 
 # Verify permissions
-ls -la examples/<env_name>/tasks/<task_name>/*.sh
+ls -la benchmarks/cua_world/environments/<env_name>/tasks/<task_name>/*.sh
 # Should show: -rwxr-x--- (x means executable)
 ```
 
@@ -565,7 +572,7 @@ Unlike GUI diagram annotations (Lesson 16), code comments are often pedagogicall
 1. **Audit every comment in your data project against your grep patterns**:
 ```bash
 # Find all comment lines that match your verifier's grep targets
-MAIN_SRC="examples/myenv/data/my-project/src/main/java"
+MAIN_SRC="benchmarks/cua_world/environments/myenv/data/my-project/src/main/java"
 grep -rn "LocalDate\|Period\|Map<Integer\|List<Employee" "$MAIN_SRC" | grep -E "//|/\*|\*"
 ```
 
@@ -630,7 +637,7 @@ DTO_FILE=$(find "$PKG_DIR" -name "*.kt" -exec grep -lP "^(?!\s*[/*]).*@Serialize
 
 **Pre-flight check**: Before finalizing any code-editing task, run:
 ```bash
-grep -rn "@YourPattern\|keyword_you_check" examples/<env>/data/<AppName>/
+grep -rn "@YourPattern\|keyword_you_check" benchmarks/cua_world/environments/<env>/data/<AppName>/
 ```
 and inspect each hit — is it in actual code or just a comment? Every comment match is a potential false positive.
 
@@ -702,7 +709,7 @@ def verify_some_task(traj, env_info, task_info):
 
 **Rule**: `return {"passed": True, "score": 100}` with no conditions is a stub. Any verifier for a hard task must have at minimum: (1) a `copy_from_env` call to retrieve results from the VM, (2) at least 3 independent scoring criteria, (3) a score < 100 unless all criteria are met.
 
-**Applies to**: Any environment you are exploring to create new tasks. Always do a quick `grep -r "passed.*True.*score.*100" examples/<env>/tasks/` audit before writing new verifiers.
+**Applies to**: Any environment you are exploring to create new tasks. Always do a quick `grep -r "passed.*True.*score.*100" benchmarks/cua_world/environments/<env>/tasks/` audit before writing new verifiers.
 
 ---
 
@@ -887,7 +894,7 @@ row_count = result.get('custom_row_count', 0)           # reads 'custom_row_coun
 **The Fix**: Before writing any mock test data, grep the verifier for every `result.get(` call to extract the canonical list of field names:
 
 ```bash
-grep -oP "result\.get\('\K[^']+" examples/<env>/tasks/<task>/verifier.py | sort -u
+grep -oP "result\.get\('\K[^']+" benchmarks/cua_world/environments/<env>/tasks/<task>/verifier.py | sort -u
 ```
 
 Use the output of this command as the keys for your mock dictionaries. Never invent field names from scratch.
@@ -1001,7 +1008,7 @@ CONFIG_VALUE=$(grep "settingName" /home/ga/.config/app/app.conf | grep -oE '[0-9
 from gym_anything.api import from_config
 
 # Boot once — pre_start runs (installs app), post_start runs (configures app)
-env = from_config("examples/<env_name>", task_id="task_1")
+env = from_config("benchmarks/cua_world/environments/<env_name>", task_id="task_1")
 obs = env.reset(seed=42, use_cache=True)
 runner = env._runner
 
@@ -1394,7 +1401,7 @@ DISPLAY=:1 scrot /tmp/task_start.png 2>/dev/null || true
 import json, tempfile, shutil, importlib.util
 
 def load_verifier(task_name):
-    path = f'examples/<env>/tasks/{task_name}/verifier.py'
+    path = f'benchmarks/cua_world/environments/<env>/tasks/{task_name}/verifier.py'
     spec = importlib.util.spec_from_file_location(f'v_{task_name}', path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -1839,10 +1846,10 @@ This is a silent bug — it does not crash, the do-nothing test still passes (th
 
 ```bash
 # Quick audit: grep the task prompt for the exact string
-grep -i "external" examples/my_env/tasks/my_task/task.json
+grep -i "external" benchmarks/cua_world/environments/my_env/tasks/my_task/task.json
 
 # Then check the verifier uses the same words
-grep -i "external" examples/my_env/tasks/my_task/verifier.py
+grep -i "external" benchmarks/cua_world/environments/my_env/tasks/my_task/verifier.py
 ```
 
 **Common offenders**:
@@ -2936,7 +2943,7 @@ def make_mock_copy_from_env(local_file_path):
 create_synthetic_result("/tmp/fake_result.json", wrong_target=True)
 
 # Call verifier directly
-verify = _load_verifier("examples/myenv/tasks/mytask", "verify_mytask")
+verify = _load_verifier("benchmarks/cua_world/environments/myenv/tasks/mytask", "verify_mytask")
 result = verify(
     [],  # empty trajectory
     {"copy_from_env": make_mock_copy_from_env("/tmp/fake_result.json")},
@@ -3402,7 +3409,7 @@ obs = env.reset(seed=42, use_cache=True, cache_level="post_start", use_savevm=Tr
 import importlib.util, tempfile, zipfile, json
 
 # Dynamically import the verifier
-spec = importlib.util.spec_from_file_location("v", "examples/my_env/tasks/my_task/verifier.py")
+spec = importlib.util.spec_from_file_location("v", "benchmarks/cua_world/environments/my_env/tasks/my_task/verifier.py")
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
@@ -3459,7 +3466,7 @@ json.dump({"file_exists": True, "has_analysis_x": True, "has_analysis_y": False,
 
 ```bash
 # Boot the environment without any task
-env = from_config("examples/<env_name>")
+env = from_config("benchmarks/cua_world/environments/<env_name>")
 obs = env.reset(seed=42, use_cache=True, cache_level="post_start", use_savevm=True)
 
 # Copy the data project and attempt to build it
@@ -5217,7 +5224,7 @@ Dense reward mode calculates a continuous reward signal differently and bypasses
 
 **Verification**: After writing `task.json`, grep for `reward_type` before running any test:
 ```bash
-grep reward_type examples/<env>/tasks/<task>/task.json
+grep reward_type benchmarks/cua_world/environments/<env>/tasks/<task>/task.json
 # Must output: "reward_type": "sparse"
 ```
 
@@ -6800,15 +6807,15 @@ If the framework actually provides the function under a *different* key (e.g., `
 
 1. **A working verifier in the same environment** (if any real ones exist — not stubs):
    ```bash
-   grep -r "env_info.get(" examples/<env>/tasks/*/verifier.py | head -5
+   grep -r "env_info.get(" benchmarks/cua_world/environments/<env>/tasks/*/verifier.py | head -5
    ```
 
 2. **A working verifier in any other environment** that uses the same runner type (QEMU, Android AVD, etc.):
    ```bash
-   grep -rh "env_info.get('exec" examples/*/tasks/*/verifier.py | sort -u
+   grep -rh "env_info.get('exec" benchmarks/cua_world/environments/*/tasks/*/verifier.py | sort -u
    ```
 
-3. **The framework runner source** (`gym_anything/runners/*.py`): look for what keys are set in the env_info dict the runner passes to verifiers.
+3. **The framework runner source** (`src/gym_anything/runtime/runners/*.py`): look for what keys are set in the env_info dict the runner passes to verifiers.
 
 **Common key names by runner type** (verify against the actual codebase — these may change):
 - QEMU/Linux environments: `exec_capture`, `copy_from_env`
@@ -6911,7 +6918,7 @@ The verifier calls `result.get("sandworm_subfolder", False)` → gets `False` (k
 
 ```bash
 # Get all result keys from the export script
-grep 'result\["' examples/<env>/tasks/<task>/export_result.sh | sed 's/.*result\["\([^"]*\)".*/\1/' | sort -u
+grep 'result\["' benchmarks/cua_world/environments/<env>/tasks/<task>/export_result.sh | sed 's/.*result\["\([^"]*\)".*/\1/' | sort -u
 ```
 
 Then build your mock test dict from this list, not from the verifier's comments or criterion descriptions.
@@ -7270,15 +7277,15 @@ def save_start_screenshot(obs, task_name: str, evidence_dir: str):
 **The Problem**: `task.json` contains `"id": "task_name@1"` (with a `@version` suffix). It is tempting to pass this value directly to `from_config()`:
 
 ```python
-env = from_config("examples/my_env", task_id="task_name@1")  # WRONG
+env = from_config("benchmarks/cua_world/environments/my_env", task_id="task_name@1")  # WRONG
 ```
 
-This raises `FileNotFoundError: Task 'task_name@1' not found under examples/my_env/tasks` because `from_config()` resolves the task by looking for a **directory** named exactly as the `task_id` argument. No directory is ever named `task_name@1` — the directory is always named `task_name` (without the version suffix).
+This raises `FileNotFoundError: Task 'task_name@1' not found under benchmarks/cua_world/environments/my_env/tasks` because `from_config()` resolves the task by looking for a **directory** named exactly as the `task_id` argument. No directory is ever named `task_name@1` — the directory is always named `task_name` (without the version suffix).
 
 **The Fix**: Always pass the bare directory name:
 
 ```python
-env = from_config("examples/my_env", task_id="task_name")  # CORRECT
+env = from_config("benchmarks/cua_world/environments/my_env", task_id="task_name")  # CORRECT
 ```
 
 **Where this matters**: Every Phase 4 test script that calls `from_config()` in a loop:
@@ -7296,7 +7303,7 @@ for task_id in ["task_a@1", "task_b@1", "task_c@1"]:
 
 **Root cause**: The `"id"` field in `task.json` identifies the task in the registry (env_id@version), but `from_config()` discovers tasks by scanning `tasks/<task_name>/task.json` — the directory name is the lookup key, not the `"id"` field value.
 
-**Rule**: In all Phase 4 and live test scripts, use the directory name (without `@version`) as `task_id`. If you have a list of task IDs with version suffixes (as used in constants.py), strip the suffix with `.split("@")[0]` before passing to `from_config()`.
+**Rule**: In all Phase 4 and live test scripts, use the directory name (without `@version`) as `task_id`. If you have a list of task IDs with version suffixes (as some `task.json` `id` fields carry), strip the suffix with `.split("@")[0]` before passing to `from_config()`.
 
 ---
 
@@ -7468,11 +7475,11 @@ On the host machine (where `skopeo` is typically available), use Amazon ECR Publ
 
 ```bash
 # ECR Public mirrors official Docker Hub images at public.ecr.aws/docker/library/<name>:<tag>
-mkdir -p examples/<your_env>/data/docker_images/
+mkdir -p benchmarks/cua_world/environments/<your_env>/data/docker_images/
 skopeo copy docker://public.ecr.aws/docker/library/ubuntu:20.04 \
-    "docker-archive:examples/<your_env>/data/docker_images/ubuntu_20.04.tar:ubuntu:20.04"
+    "docker-archive:benchmarks/cua_world/environments/<your_env>/data/docker_images/ubuntu_20.04.tar:ubuntu:20.04"
 skopeo copy docker://public.ecr.aws/docker/library/postgres:15 \
-    "docker-archive:examples/<your_env>/data/docker_images/postgres_15.tar:postgres:15"
+    "docker-archive:benchmarks/cua_world/environments/<your_env>/data/docker_images/postgres_15.tar:postgres:15"
 # ... repeat for all required base images
 ```
 
@@ -7492,7 +7499,7 @@ load_image "ubuntu_20.04.tar"   "ubuntu:20.04"
 load_image "postgres_15.tar"    "postgres:15"
 ```
 
-The workspace `/workspace/data/` is copied from the host into the VM at boot, so tar files stored in `examples/<env>/data/docker_images/` are accessible as `/workspace/data/docker_images/` inside the VM.
+The workspace `/workspace/data/` is copied from the host into the VM at boot, so tar files stored in `benchmarks/cua_world/environments/<env>/data/docker_images/` are accessible as `/workspace/data/docker_images/` inside the VM.
 
 **Key properties of ECR Public Gallery**:
 - `public.ecr.aws/docker/library/<name>:<tag>` mirrors all Docker Hub official images
@@ -7584,7 +7591,7 @@ If only a `.tar.gz` is shown, the package has no binary wheel and will fail to i
 **The discovery**: Some environments that are minor variants of each other (e.g., a "fast" variant with different startup parameters, a "lite" variant with lower resolution) share the same tasks directory via a symlink rather than maintaining a separate copy.
 
 ```
-examples/
+benchmarks/cua_world/environments/
 ├── gimp_env_all/
 │   └── tasks/           ← real directory (150+ tasks)
 └── gimp_env_all_fast/
@@ -7594,14 +7601,14 @@ examples/
 **Why this matters for task creation**:
 
 1. **Creating a task "in" the symlinked environment actually creates it in the real target** — it becomes visible from both environments automatically.
-2. **Deleting a task "from" the symlinked environment deletes it from the real target** — `rm -rf examples/env_fast/tasks/my_task` removes from `env_all/tasks/` too.
-3. **If the symlink itself is accidentally deleted**, the environment's `env.json` mount will break — the framework will fail to mount `examples/env_fast/tasks` because the path no longer exists.
+2. **Deleting a task "from" the symlinked environment deletes it from the real target** — `rm -rf benchmarks/cua_world/environments/env_fast/tasks/my_task` removes from `env_all/tasks/` too.
+3. **If the symlink itself is accidentally deleted**, the environment's `env.json` mount will break — the framework will fail to mount `benchmarks/cua_world/environments/env_fast/tasks` because the path no longer exists.
 
 **Before creating or deleting tasks, always inspect the target directory**:
 
 ```bash
 # Check whether 'tasks' is a real directory or a symlink
-ls -la examples/<env_name>/
+ls -la benchmarks/cua_world/environments/<env_name>/
 
 # Output for a symlink:
 # lrwxrwxrwx  1 user user  21 Jan  1 00:00 tasks -> ../gimp_env_all/tasks
@@ -7615,7 +7622,7 @@ ls -la examples/<env_name>/
 **If you accidentally delete the symlink**, recreate it:
 
 ```bash
-cd examples/<env_name>/
+cd benchmarks/cua_world/environments/<env_name>/
 ln -s ../other_env/tasks tasks
 ```
 
@@ -8090,7 +8097,7 @@ def make_copy_from_env(json_data, csv_content=None):
     return copy_from_env
 
 # Load verifier module dynamically
-spec = importlib.util.spec_from_file_location('verifier', 'examples/<env>/tasks/<task>/verifier.py')
+spec = importlib.util.spec_from_file_location('verifier', 'benchmarks/cua_world/environments/<env>/tasks/<task>/verifier.py')
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 fn = getattr(mod, 'verify_<task_name>')
@@ -8635,7 +8642,7 @@ Each environment ships its own `scripts/task_utils.sh`. These files share a comm
 ```bash
 # Before writing setup_task.sh for a new environment, always run:
 grep -n "^function \|^[a-z_]*()" \
-    examples/<env_name>/scripts/task_utils.sh
+    benchmarks/cua_world/environments/<env_name>/scripts/task_utils.sh
 
 # Then, for every helper you plan to use, verify it appears in the output.
 # If it does not, implement the operation inline. Example:
@@ -8658,7 +8665,7 @@ Concrete example: `scrot` is installed for the desktop user but is not on root's
 
 When writing `setup_task.sh` for any new environment, before the first commit:
 
-- [ ] Open `examples/<env_name>/scripts/task_utils.sh` and list all defined functions
+- [ ] Open `benchmarks/cua_world/environments/<env_name>/scripts/task_utils.sh` and list all defined functions
 - [ ] For each function called in your `setup_task.sh`, confirm it appears in that list
 - [ ] For each system command called (screenshot, audio capture, etc.), test that `sudo -E <command>` succeeds from within the VM
 - [ ] If a helper or command is unavailable, implement inline using only primitives confirmed to work as root
@@ -8797,10 +8804,10 @@ Before writing a new task.json, open an existing, *working* task.json from the *
 
 ```bash
 # Step 1: Find a working task in the same environment
-ls examples/<env_name>/tasks/
+ls benchmarks/cua_world/environments/<env_name>/tasks/
 
 # Step 2: Read its task.json as your structural template
-cat examples/<env_name>/tasks/<any_working_task>/task.json
+cat benchmarks/cua_world/environments/<env_name>/tasks/<any_working_task>/task.json
 ```
 
 Then build your new task.json by **copying the structure** of the working file and changing only the content fields. Do not write task.json from memory, from documentation, or from a task.json you wrote for a *different* environment.
@@ -8838,7 +8845,7 @@ After writing task.json, run this one-liner before booting any VM:
 ```bash
 python3 -c "
 import json
-with open('examples/<env>/tasks/<task>/task.json') as f:
+with open('benchmarks/cua_world/environments/<env>/tasks/<task>/task.json') as f:
     d = json.load(f)
 required = ['id', 'version', 'env_id', 'description', 'difficulty', 'init', 'hooks', 'success']
 missing = [k for k in required if k not in d]
@@ -8861,7 +8868,7 @@ The `success.spec.program` value must exactly match the function name defined in
 
 ```bash
 # Check the function name is correct
-grep "^def verify_" examples/<env>/tasks/<task>/verifier.py
+grep "^def verify_" benchmarks/cua_world/environments/<env>/tasks/<task>/verifier.py
 # Output should match the function name in task.json success.spec.program
 ```
 
@@ -9372,7 +9379,7 @@ VALUES (..., '', '', '', ...)
 **The Pattern**: For hard/very_hard tasks, place a specification or requirements document inside the task's workspace directory (e.g., `/workspace/tasks/<task_name>/spec.txt`). The task description tells the agent only that a specification exists — the agent must read it to determine exactly what to build.
 
 ```
-examples/<env_name>/tasks/<task_name>/
+benchmarks/cua_world/environments/<env_name>/tasks/<task_name>/
 ├── task.json       ← description: "Read funnel_spec.txt and implement..."
 ├── setup_task.sh
 ├── export_result.sh
@@ -9422,7 +9429,7 @@ expected = {
 - Keep the spec file terse and professional — not a tutorial, not step-by-step instructions. It should read like an actual requirements document, not a hint
 - Include deliberate precision requirements that the agent must get right (e.g., "exact match" vs "contains") — these discriminate between careful reading and guessing
 - Mount the task directory read-only in `env.json` (already the standard pattern for Matomo and similar environments), so the spec is accessible at `/workspace/tasks/<task_name>/` automatically
-- The verifier does NOT need to `copy_from_env` the spec — it lives locally on the host filesystem in `examples/<env_name>/tasks/<task_name>/`, so the verifier can read it directly if needed
+- The verifier does NOT need to `copy_from_env` the spec — it lives locally on the host filesystem in `benchmarks/cua_world/environments/<env_name>/tasks/<task_name>/`, so the verifier can read it directly if needed
 
 **When to use**: Any task where the requirements can be expressed as a formal specification (conversion goals, schema definitions, configuration rules, data transformation requirements, report formats). Especially powerful for "implement from requirements" tasks where the agent's job is to translate a document into application configuration.
 
@@ -10951,9 +10958,9 @@ PS_COUNT=$(derby_count "$DB_PATH" "PRODUCT_SYSTEMS" 2>/dev/null)
 
 ```bash
 # Read before writing — for any new task in environment X:
-cat examples/<env_name>/tasks/<existing_task>/export_result.sh
-cat examples/<env_name>/tasks/<existing_task>/verifier.py
-cat examples/<env_name>/scripts/task_utils.sh
+cat benchmarks/cua_world/environments/<env_name>/tasks/<existing_task>/export_result.sh
+cat benchmarks/cua_world/environments/<env_name>/tasks/<existing_task>/verifier.py
+cat benchmarks/cua_world/environments/<env_name>/scripts/task_utils.sh
 ```
 
 Look specifically for:
@@ -11085,11 +11092,11 @@ Lesson 26 addresses one direction: derive mock test field names by grepping `res
 
 ```bash
 # Direction 1: Fields the VERIFIER reads — must all be present in export JSON
-grep "result.get(" examples/<env>/tasks/<task>/verifier.py \
+grep "result.get(" benchmarks/cua_world/environments/<env>/tasks/<task>/verifier.py \
   | sed "s/.*result.get('\([^']*\)'.*/\1/" | sort > /tmp/verifier_fields.txt
 
 # Direction 2: Fields the EXPORT writes — check which are unused by verifier
-grep '".*": \$' examples/<env>/tasks/<task>/export_result.sh \
+grep '".*": \$' benchmarks/cua_world/environments/<env>/tasks/<task>/export_result.sh \
   | sed 's/.*"\(.*\)": .*/\1/' | sort > /tmp/export_fields.txt
 
 # Show what verifier reads but export doesn't write (CRITICAL — fix these):
@@ -11958,7 +11965,7 @@ When collecting evidence for `evidence_docs/`, use visual grounding to confirm t
 result = visual_grounding(
     question="Does this screenshot show [expected application state]? "
              "Is the correct data/module/record visible?",
-    screenshot_path=f"examples/{env_name}/evidence_docs/{task_name}_screenshot.png"
+    screenshot_path=f"benchmarks/cua_world/environments/{env_name}/evidence_docs/{task_name}_screenshot.png"
 )
 ```
 
@@ -12566,7 +12573,7 @@ import importlib.util, json, shutil, tempfile, os
 
 def run_verifier_offline(task_name, result_dict):
     """Run verifier with mock result JSON, no VM needed."""
-    path = f'examples/<env>/tasks/{task_name}/verifier.py'
+    path = f'benchmarks/cua_world/environments/<env>/tasks/{task_name}/verifier.py'
     spec = importlib.util.spec_from_file_location(f"v_{task_name}", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -13455,7 +13462,7 @@ cp /workspace/assets/sequences.fasta /home/ga/data/sequences.fasta
 ```
 
 **Asset directory conventions**:
-- Store shared data files in `examples/<env_name>/assets/` — this directory is typically mounted read-only at `/workspace/assets/` inside the VM.
+- Store shared data files in `benchmarks/cua_world/environments/<env_name>/assets/` — this directory is typically mounted read-only at `/workspace/assets/` inside the VM.
 - Name files descriptively: `reference_wheat_pathogens_ITS.fasta`, not `data1.fasta`.
 - Document the data source (accession numbers, URLs, download dates) in comments in `setup_task.sh` where the `cp` command appears.
 - Multiple tasks can reference the same asset file, ensuring consistency.
@@ -14091,7 +14098,7 @@ Ten seconds of reading the sibling task would have prevented hours of debugging.
 
 **The Rule**: Before writing any SQL for a new task in an established environment, run:
 ```bash
-grep -h "SELECT\|UPDATE\|INSERT\|FROM\|WHERE" examples/<env_name>/tasks/*/export_result.sh | head -60
+grep -h "SELECT\|UPDATE\|INSERT\|FROM\|WHERE" benchmarks/cua_world/environments/<env_name>/tasks/*/export_result.sh | head -60
 ```
 Use the column names, table names, and query patterns you find there. Only fall back to VM inspection or Lesson 40's multi-variant approach if no sibling task queries the same table.
 
@@ -14121,12 +14128,12 @@ But the seed data had Nexus SCADA already set to `Closed Won`. The conditional `
 
 ```bash
 # Step 1: Verify entity exists
-grep -n "Blackstone Industrial\|Nexus SCADA" examples/<env_name>/data/seed_data.sql
-grep -n "Blackstone Industrial\|Nexus SCADA" examples/<env_name>/utils/seed_data.php
+grep -n "Blackstone Industrial\|Nexus SCADA" benchmarks/cua_world/environments/<env_name>/data/seed_data.sql
+grep -n "Blackstone Industrial\|Nexus SCADA" benchmarks/cua_world/environments/<env_name>/utils/seed_data.php
 
 # Step 2: Check the entity's seeded initial state
 # e.g., look for sales_stage, ticketstatus, probability in the seed row
-grep -A5 "Nexus SCADA" examples/<env_name>/utils/seed_data.php
+grep -A5 "Nexus SCADA" benchmarks/cua_world/environments/<env_name>/utils/seed_data.php
 ```
 
 If the entity doesn't exist: either add it to the seed (preferred), create it in setup_task.sh, or pick a different entity that does exist.
@@ -14196,7 +14203,7 @@ EVENT_DATA=$(vtiger_db_query "
 When you run a do-nothing test (or any test episode), the framework records screenshots to:
 
 ```
-examples/<env_name>/artifacts/episode_<timestamp>/frame_00000.png
+benchmarks/cua_world/environments/<env_name>/artifacts/episode_<timestamp>/frame_00000.png
 ```
 
 `frame_00000.png` is the very first frame captured — taken immediately after the pre-task hook completes and before the agent takes any action. This is the canonical evidence that the task's initial state is correct (correct application open, correct file loaded, correct UI visible).
@@ -14206,11 +14213,11 @@ examples/<env_name>/artifacts/episode_<timestamp>/frame_00000.png
 ```python
 import glob, shutil, os
 
-artifact_dirs = sorted(glob.glob("examples/<env>/artifacts/episode_*"))
+artifact_dirs = sorted(glob.glob("benchmarks/cua_world/environments/<env>/artifacts/episode_*"))
 if artifact_dirs:
     latest = artifact_dirs[-1]
     frame = os.path.join(latest, "frame_00000.png")
-    shutil.copy(frame, "examples/<env>/evidence_docs/<task>_start_state.png")
+    shutil.copy(frame, "benchmarks/cua_world/environments/<env>/evidence_docs/<task>_start_state.png")
 ```
 
 **What to verify in the screenshot** (use visual inspection or the `visual_grounding` MCP tool):
@@ -14690,16 +14697,16 @@ The verifier only scores the 3 target pids. Noise pids are not scored (agent not
 **How to extract the schema**:
 ```bash
 # See all tables that existing tasks interact with
-grep -rh "INSERT INTO\|UPDATE\|DELETE FROM" examples/<env>/tasks/*/setup_task.sh | sort -u
+grep -rh "INSERT INTO\|UPDATE\|DELETE FROM" benchmarks/cua_world/environments/<env>/tasks/*/setup_task.sh | sort -u
 
 # See exact column list for a specific table
-grep -A5 "INSERT INTO \`demographics\`" examples/<env>/tasks/*/setup_task.sh | head -20
+grep -A5 "INSERT INTO \`demographics\`" benchmarks/cua_world/environments/<env>/tasks/*/setup_task.sh | head -20
 
 # Find the primary key / unique identifier
-grep "WHERE pid=" examples/<env>/tasks/*/setup_task.sh | head -5
+grep "WHERE pid=" benchmarks/cua_world/environments/<env>/tasks/*/setup_task.sh | head -5
 
 # Find foreign key patterns (provider_id, practice_id conventions)
-grep -oh "provider_id.*[0-9]" examples/<env>/tasks/*/setup_task.sh | head -5
+grep -oh "provider_id.*[0-9]" benchmarks/cua_world/environments/<env>/tasks/*/setup_task.sh | head -5
 ```
 
 **What this gives you**:
@@ -14963,7 +14970,7 @@ if config_exists and fallback_empty:
 
 **Minimal live do-nothing test**:
 ```python
-env = from_config('examples/<env_name>', task_id='<task_name>')
+env = from_config('benchmarks/cua_world/environments/<env_name>', task_id='<task_name>')
 obs = env.reset(seed=42, use_cache=True, cache_level='pre_start', use_savevm=True)
 obs2, reward, done, info = env.step([], mark_done=True)
 vr = info.get('verifier', {})

@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Flight Crew View (FLICA) Environment Notes
 
 ## App Details
@@ -7,10 +14,15 @@
 - **APK Type**: App Bundle (split APKs — base + 3 config splits)
 
 ## Account
-- **Email**: cuasuite@gmail.com
-- **Password**: #Aa123456aA
+- **Email**: `<configured at env-build time — see env-local secrets, do not commit>`
+- **Password**: `<configured at env-build time — see env-local secrets, do not commit>`
 - **Role**: Friend/Family (free tier, no airline credentials needed)
-- **Display Name**: CUA Suite
+- **Display Name**: `<configured at env-build time>`
+
+> The FLICA app requires a registered account. Provision one for the
+> environment (Friend/Family tier is free) and inject the credentials via
+> `env.json` `security.secrets_ref` or a task-side mount — never commit
+> them to this notes file.
 
 ## App Flow (from fresh install)
 1. Welcome screen: privacy checkbox + "Continue" button

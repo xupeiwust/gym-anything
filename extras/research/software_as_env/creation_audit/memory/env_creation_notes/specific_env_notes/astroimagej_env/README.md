@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # AstroImageJ Environment - Implementation Notes
 
 ## Overview
@@ -71,7 +78,7 @@ For more complex tasks, consider:
 
 **Data**: 230 calibrated FITS images from Moore Observatory (4.3GB total):
 - Source: University of Louisville AstroImageJ Examples
-- URL: https://www.astro.louisville.edu/software/astroimagej/benchmarks/cua_world/environments/
+- URL: <WASP-12b sample data URL — see the AstroImageJ user guide / examples page; the previously listed URL was hallucinated and does not exist>
 - Image size: 4096x4096 pixels
 - Filter: r-band (530-700nm)
 - Exposure: 100 sec each
@@ -217,7 +224,7 @@ python3 benchmarks/cua_world/environments/astroimagej_env/tasks/detect_exoplanet
 
 ### detect_exoplanet_transit Task
 - [x] Real WASP-12b calibrated images from University of Louisville (186 FITS files, 4.3GB)
-- [x] Data URL: https://www.astro.louisville.edu/software/astroimagej/benchmarks/cua_world/environments/
+- [x] Data URL: <WASP-12b sample data URL — see the AstroImageJ user guide / examples page; the previously listed URL was hallucinated and does not exist>
 - [x] AstroImageJ launches with images pre-loaded as virtual stack
 - [x] Export script detects loaded images via window title parsing
 - [x] Verifier mock tests all pass:

@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Windows VM Environment Setup — OS-Level Lessons Learned
 
 These notes cover **Windows-specific OS patterns** discovered while setting up GUI applications in Windows QEMU VMs via SSH. They apply to setting up **any** software on Windows, not just Excel/Office.

@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Repository Structure for Task Creation
 
 ## Overview
@@ -9,36 +16,47 @@ Before creating tasks, you must understand the repository structure and how task
 ## Directory Structure
 
 ```
-Gym-Anything_for_cmu/
-├── gym_anything/                    # Core framework (don't modify)
+gym-anything/
+├── src/gym_anything/                # Core framework — importable as `gym_anything`
 │   ├── api.py                       # from_config(), make()
 │   ├── env.py                       # GymAnythingEnv class
+│   ├── specs.py                     # EnvSpec, TaskSpec dataclasses
+│   ├── contracts.py                 # SessionInfo, RunnerRuntimeInfo
 │   ├── verification/                # Verification runner
 │   │   └── runner.py                # Calls verifier.py
-│   └── runners/                     # VM/container runners
+│   └── runtime/runners/             # VM/container runners (qemu_apptainer, docker, …)
 │
-├── examples/                        # ALL ENVIRONMENTS LIVE HERE
-│   └── <env_name>/                  # One folder per environment
-│       ├── env.json                 # Environment specification
-│       ├── scripts/                 # Installation/setup scripts
-│       ├── config/                  # Configuration files
-│       ├── utils/                   # Utility scripts
-│       ├── evidence_docs/           # Test evidence for this env
-│       │   ├── <task>_screenshot.png
-│       │   └── <task>_evidence.json
-│       └── tasks/                   # TASKS LIVE HERE
-│           └── <task_name>/         # One folder per task
-│               ├── task.json        # Task specification
-│               ├── README.md        # Task documentation
-│               ├── setup_task.sh    # Pre-task setup
-│               ├── export_result.sh # Post-task data export
-│               └── verifier.py      # Verification logic
+├── benchmarks/cua_world/
+│   ├── environments/                # ALL ENVIRONMENTS LIVE HERE
+│   │   └── <env_name>/              # One folder per environment
+│   │       ├── env.json             # Environment specification
+│   │       ├── scripts/             # Installation/setup scripts
+│   │       ├── config/              # Configuration files
+│   │       ├── utils/               # Utility scripts
+│   │       ├── evidence_docs/       # Test evidence for this env
+│   │       │   ├── <task>_screenshot.png
+│   │       │   └── <task>_evidence.json
+│   │       └── tasks/               # TASKS LIVE HERE
+│   │           └── <task_name>/     # One folder per task
+│   │               ├── task.json    # Task specification
+│   │               ├── README.md    # Task documentation
+│   │               ├── setup_task.sh    # Pre-task setup
+│   │               ├── export_result.sh # Post-task data export
+│   │               └── verifier.py  # Verification logic
+│   ├── splits/                      # TASK REGISTRY lives here as JSON files
+│   │   ├── <env_name>_split.json    # Per-env train/test/all task lists
+│   │   └── verified.json            # Cross-env list of verified tasks
+│   └── registry/                    # Loader helpers (splits.py)
 │
-├── constants.py                     # Task registry (must update)
-├── ask_cua.py                       # VLM helper for testing
-├── env_creation_notes/              # Environment creation docs
-└── task_creation_notes/             # Task creation docs (this folder)
+├── extras/research/
+│   ├── software_as_env/creation_audit/memory/env_creation_notes/   # Env creation docs
+│   └── task_generation/propose_and_amplify/memory/task_creation_notes/  # Task creation docs (this folder)
 ```
+
+> **Note:** `ask_cua.py` (the Codex-side VLM helper referenced elsewhere in
+> these notes) is not currently shipped in the repo — provide your own or
+> use the `visual_grounding` MCP tool from
+> `extras/research/software_as_env/creation_audit/mcp/`.
 
 ---
 
@@ -111,43 +129,64 @@ Defines a specific task within an environment.
 
 **Valid hooks fields** — `TaskHooks` only accepts exactly three fields: `pre_task`, `post_task`, and `pre_task_timeout`. Do not add `post_task_timeout` or any other invented field — it will raise a `TypeError: TaskHooks.__init__() got an unexpected keyword argument` at `env.reset()` time.
 
-### 3. constants.py (Task Registry)
+### 3. Task Registry — `benchmarks/cua_world/splits/<env_name>_split.json`
 
-Tasks must be registered here to be discoverable. **Registration requires two separate edits** — both are required; omitting either causes a silent failure.
+> **Note:** older notes may refer to a top-level `constants.py` with an
+> `ENV_TASK_SPLITS` dict — that file no longer exists. The registry is now
+> a directory of JSON files loaded by
+> `benchmarks/cua_world/registry/splits.py`. Auto-discovery from
+> `benchmarks/cua_world/environments/<env_name>/tasks/*` happens for free,
+> so tasks are discoverable even before you write a split file. You only
+> need to author a split file when you want explicit `train` / `test`
+> partitions or other named splits.
 
-**Step 1 — Define the task list variable** (place this near the other `*_tasks` variable definitions, before `ENV_TASK_SPLITS`):
+**To register an env with explicit splits**, drop a single JSON file at
+`benchmarks/cua_world/splits/<env_name>_split.json`:
 
-```python
-# My Environment (brief description of what it tests)
-try:
-    my_env_tasks = [x for x in os.listdir('examples/my_env/tasks') if x.find('.')==-1]
-except FileNotFoundError:
-    my_env_tasks = [
-        'task_name_1', 'task_name_2', 'task_name_3',
-        'task_name_4', 'task_name_5',
-    ]
-```
-
-The `try/except FileNotFoundError` fallback is required so that `constants.py` can be imported even when the repo is checked out without the `examples/` directory.
-
-**Step 2 — Add the entry to `ENV_TASK_SPLITS`** (find the closing `}` of the dict and insert before it):
-
-```python
-ENV_TASK_SPLITS = {
-    # ... existing entries ...
-    'my_env': {
-        'all'  : my_env_tasks,
-        'train': ['task_name_1', 'task_name_2', 'task_name_3'],
-        'test' : ['task_name_4', 'task_name_5'],
-    },
+```json
+{
+  "env_folder": "benchmarks/cua_world/environments/<env_name>",
+  "train_ratio": 0.8,
+  "train_tasks": [
+    "task_name_1", "task_name_2", "task_name_3"
+  ],
+  "test_tasks": [
+    "task_name_4", "task_name_5"
+  ],
+  "all_tasks": [
+    "task_name_1", "task_name_2", "task_name_3",
+    "task_name_4", "task_name_5"
+  ]
 }
 ```
 
+Optional fields:
+- `all_tasks`: explicit ordering for the `all` split. If omitted, the
+  registry uses `train_tasks + test_tasks` deduped, and falls back to
+  on-disk discovery.
+- `additional_splits`: a `{<split_name>: [task_ids…]}` map for custom
+  named splits beyond `train` / `test` / `all`.
+- Any top-level `<name>_tasks` array (e.g. `easy_tasks`,
+  `hard_tasks`) is also recognized as an additional split.
+
+**Cross-env "verified" set.** The file `benchmarks/cua_world/splits/verified.json`
+holds the curated verified tasks per env in a `by_environment` map; the
+registry auto-exposes those as the `verified` split.
+
 **Key points:**
-- Both steps are required. Step 1 without Step 2 = `ENV_TASK_SPLITS` has no entry for the env (silently missing). Step 2 without Step 1 = `NameError: name 'my_env_tasks' is not defined`.
-- The `os.listdir` pattern auto-discovers tasks by scanning subdirectories; the fallback list is the safety net.
-- The `'train'`/`'test'` split should separate starter/easy tasks (train) from the hard evaluation tasks (test).
-- Verify with: `python3 -c "from constants import ENV_TASK_SPLITS; print(ENV_TASK_SPLITS['my_env']['test'])"`
+- A new env doesn't *require* a split file — all on-disk tasks are exposed
+  as `all` / `train` automatically. Add a split file only when you want a
+  curated `test` partition.
+- Verify with:
+  ```python
+  from benchmarks.cua_world.registry import (
+      get_tasks_for_environment,
+      load_environment_task_splits,
+  )
+  print(get_tasks_for_environment("my_env", split="test"))
+  print(load_environment_task_splits()["my_env"])
+  ```
+- Or from the CLI: `gym-anything list --verbose`.
 
 ---
 
@@ -379,7 +418,7 @@ wait_for_window() {
 
 ```bash
 # After creating scripts, always run:
-chmod +x examples/<env_name>/tasks/<task_name>/*.sh
+chmod +x benchmarks/cua_world/environments/<env_name>/tasks/<task_name>/*.sh
 ```
 
 If scripts aren't executable, the hook will fail silently with exit code 126.
@@ -392,7 +431,7 @@ If scripts aren't executable, the hook will fail silently with exit code 126.
 from gym_anything.api import from_config
 
 # Load environment with your task
-env = from_config("examples/<env_name>", task_id="<task_name>")
+env = from_config("benchmarks/cua_world/environments/<env_name>", task_id="<task_name>")
 
 # Start environment (runs pre_start, post_start, pre_task hooks)
 # Use cached boot for faster iteration during development:

@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # CAMEO Data Manager Environment (cameo_data_manager_env) — FULLY VERIFIED 2026-02-24
 
 ## Overview
@@ -112,10 +119,13 @@ benchmarks/cua_world/environments/cameo_data_manager_env/
 
 ## Testing Commands
 ```python
-import os
-os.chdir('/compute/babel-u5-24/pranjala/gym_anything_clean/Gym-Anything_for_cmu_super_clean')
+# Run from the repo root.
 from gym_anything.api import from_config
 env = from_config('benchmarks/cua_world/environments/cameo_data_manager_env', task_id='import_tier2_data')
 obs = env.reset(seed=42, use_cache=False, use_savevm=True)
-# SSH: env._runner.ssh_port, VNC: env._runner.vnc_port
+
+# Connection info via the stable SessionInfo contract.
+session = env.get_session_info()
+ssh_port = session.ssh_port
+vnc_port = session.vnc_port
 ```

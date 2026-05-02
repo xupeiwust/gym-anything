@@ -1,3 +1,10 @@
+> **Note:** This file was generated against an earlier version of the gym-anything
+> library. Some paths (e.g. `gym_anything/runners/...`, `examples/<env>/...`,
+> `constants.py`) and APIs (e.g. `env.verify()`, `env._runner.ssh_port`) referenced
+> below may have moved or been renamed. Cross-check against the current source tree
+> (`src/gym_anything/...`, `benchmarks/cua_world/environments/...`,
+> `env.get_session_info()`) before relying on any path or import here.
+
 # Evidence Documentation Guide
 
 ## Overview
@@ -15,7 +22,7 @@ Evidence documentation proves that tasks are correctly implemented and working. 
 Evidence lives **inside** each environment's directory, not at the repo root:
 
 ```
-examples/<env_name>/
+benchmarks/cua_world/environments/<env_name>/
 ├── evidence_docs/
 │   ├── <task_name>_screenshot.png      # Task start state screenshot
 │   ├── <task_name>_evidence.json       # Database/system verification
@@ -26,7 +33,7 @@ examples/<env_name>/
 ```
 
 ```
-examples/<env_name>/
+benchmarks/cua_world/environments/<env_name>/
 └── evidence_docs/
     ├── <task_name_1>_screenshot.png
     ├── <task_name_1>_evidence.json
@@ -52,7 +59,7 @@ examples/<env_name>/
 ```python
 # In test script
 env._runner.exec_capture('DISPLAY=:1 scrot /tmp/task_start_screenshot.png')
-env._runner.copy_from('/tmp/task_start_screenshot.png', f'examples/{env_name}/evidence_docs/{task_name}_screenshot.png')
+env._runner.copy_from('/tmp/task_start_screenshot.png', f'benchmarks/cua_world/environments/{env_name}/evidence_docs/{task_name}_screenshot.png')
 ```
 
 ### 2. Database Evidence JSON
@@ -108,7 +115,7 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/..')
 from gym_anything.api import from_config
 
-EVIDENCE_DIR = 'examples/<env_name>/evidence_docs'
+EVIDENCE_DIR = 'benchmarks/cua_world/environments/<env_name>/evidence_docs'
 
 
 def collect_evidence(env, task_name):
@@ -178,7 +185,7 @@ def test_task(task_name):
     print(f"TESTING: {task_name}")
     print('='*60)
 
-    env = from_config("examples/<env_name>", task_id=task_name)
+    env = from_config("benchmarks/cua_world/environments/<env_name>", task_id=task_name)
 
     try:
         obs = env.reset(seed=42, use_cache=False)
@@ -313,7 +320,7 @@ obs2, reward, done, info = env.step([], mark_done=True)
 time.sleep(5)  # allow finalization to complete
 
 # Read from episode artifacts directory (ground truth)
-artifacts_dir = "examples/<env_name>/artifacts"
+artifacts_dir = "benchmarks/cua_world/environments/<env_name>/artifacts"
 episodes = sorted([d for d in os.listdir(artifacts_dir) if d.startswith("episode_")])
 verifier_result = {}
 if episodes:
@@ -332,7 +339,7 @@ passed = verifier_result.get("passed")
 score = verifier_result.get("score")
 ```
 
-`summary.json` is written by the framework after all `post_task` hooks and verifier calls complete, making it the authoritative record of the episode result. The episode directory is named `episode_<timestamp>` and is located in `examples/<env_name>/artifacts/` by default.
+`summary.json` is written by the framework after all `post_task` hooks and verifier calls complete, making it the authoritative record of the episode result. The episode directory is named `episode_<timestamp>` and is located in `benchmarks/cua_world/environments/<env_name>/artifacts/` by default.
 
 ---
 

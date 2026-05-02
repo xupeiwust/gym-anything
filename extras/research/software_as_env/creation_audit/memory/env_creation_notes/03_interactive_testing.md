@@ -203,13 +203,22 @@ stdout = ssh.exec_command('cat /home/ga/env_setup_pre_task.log')[1]
 print(stdout.read().decode())
 ```
 
-Then run the actual verifier to confirm it passes/fails correctly:
+Then run the actual verifier to confirm it passes/fails correctly. There is
+no standalone `env.verify()` — finalize the episode through the normal
+`mark_done` path and read the result off `info["verifier"]`:
 
 ```python
-# Run verification through the framework
-result = env.verify()
+# Trigger post_task hook + verifier and write summary.json
+_, _, _, info = env.step([], mark_done=True)
+result = info["verifier"]
 print(f"Passed: {result['passed']}, Score: {result['score']}")
 print(f"Feedback: {result['feedback']}")
+```
+
+Equivalent CLI invocation (boots, finalizes, runs verifier, reports):
+
+```bash
+gym-anything verify task <env_dir> --task <task_name>
 ```
 
 ---

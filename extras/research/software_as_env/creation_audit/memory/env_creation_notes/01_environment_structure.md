@@ -93,6 +93,7 @@ Each task.json should include:
     "pre_task": "/workspace/tasks/<task_name>/setup_task.sh"
   },
   "success": {
+    "mode": "program",
     "spec": {
       "program": "verifier.py::check_function_name"
     }

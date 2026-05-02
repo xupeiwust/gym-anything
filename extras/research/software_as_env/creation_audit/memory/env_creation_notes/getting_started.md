@@ -27,25 +27,29 @@ This guide covers everything you need to know to create new environments and tas
 ## Repository Structure
 
 ```
-Gym-Anything_for_cmu/
-├── gym_anything/                    # Core framework package
+gym-anything/
+├── src/gym_anything/                # Core framework package (importable as `gym_anything`)
 │   ├── api.py                       # Main API (make, from_config)
 │   ├── env.py                       # GymAnythingEnv class
 │   ├── specs.py                     # EnvSpec, TaskSpec dataclasses
-│   ├── runners/                     # Container/VM runners
+│   ├── contracts.py                 # SessionInfo, RunnerRuntimeInfo (stable runtime contracts)
+│   ├── runtime/runners/             # Container/VM runners
 │   │   ├── qemu_apptainer.py        # QEMU+Apptainer runner (HPC/SLURM)
 │   │   ├── docker.py                # Docker runner
 │   │   └── base.py                  # Base runner interface
 │   ├── presets/                     # Base image presets
 │   │   └── ubuntu-gnome-systemd_highres.json
 │   └── verification/                # Verification runner (stub — VLM verification is external)
-├── benchmarks/cua_world/environments/                        # Environment definitions
-│   ├── vlc_media_player_env/        # Example: VLC environment
-│   ├── chrome_env_all/              # Example: Chrome environment
-│   ├── openemr_env/                 # Example: OpenEMR (web app with Docker)
-│   └── ...
-├── extras/research/software_as_env/creation_audit/memory/env_creation_notes/              # Documentation for env creation
-└── agents/                          # Agent implementations
+├── benchmarks/cua_world/
+│   ├── environments/                # Environment definitions live here
+│   │   ├── vlc_media_player_env/    # Example: VLC environment
+│   │   ├── chrome_env_all/          # Example: Chrome environment
+│   │   ├── openemr_env/             # Example: OpenEMR (web app with Docker)
+│   │   └── ...
+│   ├── splits/                      # Named task lists (train/test/all/verified)
+│   └── registry/                    # Split-loading helpers
+├── extras/research/software_as_env/creation_audit/memory/env_creation_notes/  # Documentation for env creation
+└── agents/                          # Reference agents (agents/, evaluation/, shared/)
 ```
 
 ---
@@ -269,9 +273,11 @@ env = from_config("benchmarks/cua_world/environments/myapp_env", task_id="my_tas
 # Reset - starts VM, runs hooks
 obs = env.reset(seed=42, use_cache=False)
 
-# Get connection info
-ssh_port = env._runner.ssh_port
-vnc_port = env._runner.vnc_port
+# Get connection info via the stable SessionInfo contract.
+# (env._runner.ssh_port still works but bypasses the public API.)
+session = env.get_session_info()
+ssh_port = session.ssh_port
+vnc_port = session.vnc_port
 print(f"SSH: {ssh_port}, VNC: {vnc_port}")
 ```
 
