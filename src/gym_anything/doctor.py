@@ -1,13 +1,67 @@
 from __future__ import annotations
 
+import os
 import shutil
+import stat
 import subprocess
 import warnings
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from .verification.imports import find_missing_imports
+
+
+DEFAULT_KVM_DEVICE = "/dev/kvm"
+
+# Runners that require KVM acceleration on Linux. macOS variants use HVF and
+# are unaffected.
+_KVM_RUNNERS = {"qemu", "qemu_native", "avd", "avd_native"}
+
+
+def _probe_kvm_openable(device: str = DEFAULT_KVM_DEVICE) -> Tuple[bool, Optional[str]]:
+    """Return (ok, reason) for whether the current process can open ``device`` RW.
+
+    Used by ``get_runner_status`` to mark KVM-dependent runners as unavailable
+    when the device is missing or not accessible. Returns the same reasons as
+    :func:`check_kvm_access` so callers can surface actionable hints.
+    """
+    path = Path(device)
+
+    if not path.exists():
+        return False, f"{device} does not exist"
+
+    try:
+        mode = path.stat().st_mode
+    except OSError as exc:
+        return False, f"cannot stat {device}: {exc}"
+
+    if not stat.S_ISCHR(mode):
+        return False, f"{device} is not a character device"
+
+    fd: Optional[int] = None
+    try:
+        fd = os.open(device, os.O_RDWR | getattr(os, "O_CLOEXEC", 0))
+    except PermissionError:
+        return False, f"{device} is not readable/writable by this process"
+    except OSError as exc:
+        return False, f"cannot open {device} read/write: {exc}"
+    finally:
+        if fd is not None:
+            os.close(fd)
+
+    return True, None
+
+
+def check_kvm_access(device: str = DEFAULT_KVM_DEVICE) -> None:
+    """Raise ``RuntimeError`` if ``device`` is not openable read/write.
+
+    Wraps :func:`_probe_kvm_openable` for callers that want fail-fast behavior
+    (e.g. the remote worker preflight). The message matches the probe reason.
+    """
+    ok, reason = _probe_kvm_openable(device)
+    if not ok:
+        raise RuntimeError(reason or f"{device} is not openable")
 
 
 @dataclass(frozen=True)
@@ -364,8 +418,36 @@ def get_runner_status() -> Dict[str, Dict]:
                 "install": "Built automatically on first run (~5 min)",
             }
 
+        # Special: KVM-using runners need /dev/kvm openable on Linux. macOS
+        # variants accelerate via HVF and skip this probe.
+        if _IS_LINUX and runner_key in _KVM_RUNNERS:
+            kvm_ok, kvm_reason = _probe_kvm_openable(DEFAULT_KVM_DEVICE)
+            dep_status["kvm"] = {
+                "installed": kvm_ok,
+                "path": DEFAULT_KVM_DEVICE if kvm_ok else None,
+                "desc": "/dev/kvm openable read/write (hardware virtualization)",
+                "install": (
+                    "sudo usermod -a -G kvm $USER  # then log out and back in"
+                    if kvm_reason and "readable/writable" in kvm_reason
+                    else "ensure /dev/kvm exists and the worker process can open it RW"
+                ),
+                "reason": kvm_reason,
+            }
+            if not kvm_ok:
+                all_ok = False
+
         results[runner_key] = {"available": all_ok, "deps": dep_status}
     return results
+
+
+def get_available_runners(runner_status: Optional[Dict[str, Dict]] = None) -> List[str]:
+    """Return the keys of runners whose deps are fully satisfied on this host."""
+    statuses = runner_status if runner_status is not None else get_runner_status()
+    return [
+        runner
+        for runner, status in statuses.items()
+        if status.get("available")
+    ]
 
 
 def get_recommended_runner(runner_status: Optional[Dict[str, Dict]] = None) -> Optional[str]:
@@ -467,8 +549,11 @@ def render_doctor_rich(report: DoctorReport) -> str:
 
 
 __all__ = [
+    "DEFAULT_KVM_DEVICE",
     "DoctorCheck",
     "DoctorReport",
+    "check_kvm_access",
+    "get_available_runners",
     "get_recommended_runner",
     "get_runner_status",
     "render_doctor_text",

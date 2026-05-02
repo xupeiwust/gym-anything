@@ -121,6 +121,32 @@ class WorkerInfo:
         """Check if worker has capacity for new env (including pending)."""
         return self.effective_count < self.max_envs
 
+    def get_available_runners(self) -> List[str]:
+        """Return runners the worker advertised at registration, if any.
+
+        Older workers register without this metadata; in that case we return an
+        empty list and the master falls back to runner-agnostic routing.
+        """
+        runners = self.metadata.get("available_runners") if self.metadata else None
+        if not isinstance(runners, list):
+            return []
+        return [str(item) for item in runners if isinstance(item, str)]
+
+    def supports_runner(self, runner: Optional[str]) -> bool:
+        """Whether this worker can host an env that needs ``runner``.
+
+        - If ``runner`` is None we don't know what's needed; allow it.
+        - If the worker hasn't advertised any runners (legacy worker), allow
+          it so we don't strand routing in mixed-version clusters.
+        - Otherwise require the runner to be in the advertised list.
+        """
+        if runner is None:
+            return True
+        advertised = self.get_available_runners()
+        if not advertised:
+            return True
+        return runner in advertised
+
     def to_dict(self) -> Dict[str, Any]:
         result = {
             "worker_id": self.worker_id,
@@ -367,7 +393,10 @@ class WorkerRegistry:
                     worker.env_ids.remove(env_id)
                     worker.env_count = len(worker.env_ids)
 
-    async def reserve_slot_for_new_env(self) -> Optional[WorkerSlot]:
+    async def reserve_slot_for_new_env(
+        self,
+        required_runner: Optional[str] = None,
+    ) -> Optional[WorkerSlot]:
         """Atomically select and reserve a slot on a least-loaded worker.
 
         Returns an immutable WorkerSlot to prevent external modification.
@@ -378,7 +407,7 @@ class WorkerRegistry:
         - Released with release_reservation() on failure
 
         Selection strategy:
-        1. Filter to healthy workers with capacity
+        1. Filter to healthy workers with capacity that support the requested runner
         2. Find the minimum load percentage
         3. Randomly select among workers within 10% of minimum load
            (provides load balancing while avoiding thundering herd)
@@ -387,6 +416,7 @@ class WorkerRegistry:
         - status == "healthy" (NOT draining, unhealthy, or dead)
         - is_available() (circuit breaker not open)
         - has_capacity() (env_count + pending_count < max_envs)
+        - supports_runner(required_runner) (advertised runner match)
         """
         async with self._lock:
             available = [
@@ -394,6 +424,7 @@ class WorkerRegistry:
                 if w.status == "healthy"  # Draining workers don't accept new envs
                    and w.is_available()   # Circuit breaker check
                    and w.has_capacity()   # Uses effective_count (includes pending)
+                   and w.supports_runner(required_runner)
             ]
 
             if not available:
@@ -1248,14 +1279,55 @@ async def list_workers():
 # Environment Endpoints (Proxied)
 # =============================================================================
 
+def _infer_required_runner(payload: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Best-effort extraction of the runner needed for an env creation request.
+
+    Returns ``None`` when the runner cannot be inferred; callers fall back to
+    runner-agnostic routing in that case.
+
+    Order of precedence:
+    1. Explicit ``runner`` field on the request body (set by RemoteGymEnv).
+    2. ``env_spec.runner`` if a full spec was sent.
+    3. Preset-implied runner via ``get_runner_type`` when only ``base`` is set.
+    """
+    if not isinstance(payload, dict):
+        return None
+
+    explicit = payload.get("runner")
+    if isinstance(explicit, str) and explicit:
+        return explicit
+
+    env_spec = payload.get("env_spec")
+    if isinstance(env_spec, dict):
+        spec_runner = env_spec.get("runner")
+        if isinstance(spec_runner, str) and spec_runner:
+            return spec_runner
+        if env_spec.get("base"):
+            try:
+                from gym_anything.config.presets import get_runner_type
+                return get_runner_type(env_spec)
+            except Exception:
+                return None
+
+    return None
+
+
 @app.route('/envs/create', methods=['POST'])
 async def create_environment():
     """Create environment on least-loaded worker with atomic slot reservation."""
     worker = None
     try:
+        # Inspect payload to learn which runner the env needs (best-effort).
+        # We re-pass the same body downstream, so this is cheap.
+        try:
+            payload = await request.get_json(silent=True)
+        except Exception:
+            payload = None
+        required_runner = _infer_required_runner(payload)
+
         # ATOMIC: Select worker AND reserve slot in one operation
         # This prevents race conditions under heavy load
-        worker = await registry.reserve_slot_for_new_env()
+        worker = await registry.reserve_slot_for_new_env(required_runner=required_runner)
 
         if not worker:
             # Get counts for error message (these are quick operations)
@@ -1264,12 +1336,14 @@ async def create_environment():
             return jsonify({
                 "error": "No healthy workers with capacity available",
                 "total_workers": len(all_workers),
-                "healthy_workers": len(healthy_workers)
+                "healthy_workers": len(healthy_workers),
+                "required_runner": required_runner,
             }), 503
 
         logger.info(f"Routing env creation to worker {worker.worker_id} "
                    f"(effective: {worker.effective_count}/{worker.max_envs}, "
-                   f"pending: {worker.pending_count})")
+                   f"pending: {worker.pending_count}, "
+                   f"required_runner={required_runner or 'any'})")
 
         # Proxy to worker (reservation held during this async call)
         response = await proxy_request_to_worker(worker, "/envs/create")

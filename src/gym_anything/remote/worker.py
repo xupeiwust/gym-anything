@@ -26,6 +26,7 @@ import platform
 import random
 import signal
 import socket
+import stat
 import sys
 import threading
 import time
@@ -41,6 +42,12 @@ from flask import Flask, request, jsonify, send_file, render_template_string
 from flask_cors import CORS
 
 from gym_anything.api import from_config, make
+from gym_anything.doctor import (
+    DEFAULT_KVM_DEVICE,
+    check_kvm_access as _doctor_check_kvm_access,
+    get_available_runners,
+    get_runner_status,
+)
 from gym_anything.env import GymAnythingEnv
 from gym_anything.specs import EnvSpec, TaskSpec
 
@@ -59,6 +66,113 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+class WorkerPreflightError(RuntimeError):
+    """Raised when the worker host cannot run the expected remote environment stack."""
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _parse_runner_list(raw: Optional[str]) -> List[str]:
+    if not raw:
+        return []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+def check_kvm_access(kvm_device: str = DEFAULT_KVM_DEVICE) -> None:
+    """Backwards-compatible wrapper around the doctor's KVM probe.
+
+    Raises ``WorkerPreflightError`` (a ``RuntimeError`` subclass) on failure so
+    older callers that catch the worker-specific exception continue to work.
+    """
+    try:
+        _doctor_check_kvm_access(kvm_device)
+    except RuntimeError as exc:
+        raise WorkerPreflightError(str(exc)) from exc
+
+
+def run_runner_preflight(
+    *,
+    must_support: Optional[List[str]] = None,
+    skip: bool = False,
+) -> List[str]:
+    """Discover which runners this worker can actually host.
+
+    Uses :func:`gym_anything.doctor.get_runner_status` so the same logic powers
+    ``gym-anything doctor`` and the worker preflight, including the KVM probe
+    for QEMU-family runners on Linux.
+
+    Args:
+        must_support: Runners that must be available; missing ones raise
+            :class:`WorkerPreflightError`.
+        skip: If True, log a warning and return an empty list without probing.
+
+    Returns:
+        Sorted list of runner keys whose deps are satisfied on this host.
+    """
+    must_support = list(must_support or [])
+
+    if skip:
+        logger.warning(
+            "Skipping worker runner preflight; this worker may fail to run any environments"
+        )
+        return []
+
+    status = get_runner_status()
+    available = sorted(get_available_runners(status))
+
+    for runner_key, info in status.items():
+        if info.get("reason"):
+            logger.info("Runner %s unavailable: %s", runner_key, info["reason"])
+            continue
+        missing = [
+            name for name, dep in info.get("deps", {}).items()
+            if not dep.get("installed")
+        ]
+        if info.get("available"):
+            logger.info("Runner %s READY", runner_key)
+        else:
+            logger.info(
+                "Runner %s MISSING DEPS: %s",
+                runner_key,
+                ", ".join(missing) or "<unknown>",
+            )
+
+    missing_required: List[str] = []
+    for required in must_support:
+        info = status.get(required)
+        if info is None:
+            missing_required.append(f"{required} (unknown runner)")
+            continue
+        if info.get("reason"):
+            missing_required.append(f"{required} ({info['reason']})")
+            continue
+        if not info.get("available"):
+            missing_deps = [
+                name for name, dep in info.get("deps", {}).items()
+                if not dep.get("installed")
+            ]
+            missing_required.append(
+                f"{required} (missing: {', '.join(missing_deps) or 'unknown'})"
+            )
+
+    if missing_required:
+        raise WorkerPreflightError(
+            "must-support runners not satisfied: " + "; ".join(missing_required)
+        )
+
+    if not available:
+        raise WorkerPreflightError(
+            "no runner is available on this host; install runner deps or pass --skip-preflight"
+        )
+
+    return available
 
 
 # =============================================================================
@@ -355,7 +469,8 @@ class MasterClient:
     """Handles communication with master server."""
 
     def __init__(self, master_url: str, worker_id: str, worker_url: str,
-                 hostname: str, port: int, max_envs: int):
+                 hostname: str, port: int, max_envs: int,
+                 available_runners: Optional[List[str]] = None):
         # Normalize master URL to just scheme+host+port (strip any path like /dashboard)
         parsed = urlparse(master_url)
         if parsed.port:
@@ -368,6 +483,7 @@ class MasterClient:
         self.hostname = hostname
         self.port = port
         self.max_envs = max_envs
+        self.available_runners = list(available_runners or [])
         self.registered = False
         self.last_heartbeat_error: Optional[str] = None
 
@@ -386,6 +502,7 @@ class MasterClient:
                         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
                         "slurm_array_task_id": os.environ.get("SLURM_ARRAY_TASK_ID"),
                         "pid": os.getpid(),
+                        "available_runners": self.available_runners,
                     }
                 },
                 timeout=30
@@ -1170,9 +1287,48 @@ def main():
         default=None,
         help="Hostname or IP advertised to the master. Defaults to --host when it is specific, otherwise the system hostname.",
     )
+    parser.add_argument(
+        "--skip-preflight",
+        action="store_true",
+        default=_env_flag("GYM_ANYTHING_WORKER_SKIP_PREFLIGHT"),
+        help="Skip the startup runner preflight. Intended only for local development and tests.",
+    )
+    parser.add_argument(
+        "--skip-kvm-check",
+        dest="skip_preflight",
+        action="store_true",
+        default=False,
+        help="Deprecated alias for --skip-preflight. Will be removed in a future release.",
+    )
+    parser.add_argument(
+        "--must-support-runner",
+        default=os.environ.get("GYM_ANYTHING_WORKER_MUST_SUPPORT_RUNNER", ""),
+        help=(
+            "Comma-separated runner keys that must be available on this host. "
+            "Preflight fails if any are missing. Example: --must-support-runner qemu,docker"
+        ),
+    )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
     args = parser.parse_args()
+
+    if _env_flag("GYM_ANYTHING_WORKER_SKIP_KVM_CHECK"):
+        logger.warning(
+            "GYM_ANYTHING_WORKER_SKIP_KVM_CHECK is deprecated; use GYM_ANYTHING_WORKER_SKIP_PREFLIGHT"
+        )
+        args.skip_preflight = True
+
+    must_support = _parse_runner_list(args.must_support_runner)
+    try:
+        available_runners = run_runner_preflight(
+            must_support=must_support,
+            skip=args.skip_preflight,
+        )
+    except WorkerPreflightError as exc:
+        logger.error("Worker startup preflight failed: %s", exc)
+        raise SystemExit(1) from exc
+
+    logger.info("Worker advertising runners: %s", available_runners or "[]")
 
     # Update config
     config.host = args.host
@@ -1230,7 +1386,8 @@ def main():
             worker_url=worker_url,
             hostname=hostname,
             port=config.port,
-            max_envs=config.max_envs
+            max_envs=config.max_envs,
+            available_runners=available_runners,
         )
 
         # Register with master

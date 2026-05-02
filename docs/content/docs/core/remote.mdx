@@ -52,6 +52,12 @@ gym-anything-worker \
 
 The master stores worker and environment routing state in memory, so run a single master process. Submit worker jobs with your cluster scheduler by launching `gym-anything-worker` in each job. The environment paths and cache paths used by clients must also exist on the worker machines.
 
+Workers run a runner preflight before registering with the master. The same logic that powers `gym-anything doctor` discovers which runners are usable on the host (binaries present, `/dev/kvm` openable for QEMU-family runners on Linux, etc.) and the worker advertises that list to the master under `metadata.available_runners`. The master uses it to route environments only to workers that can run them: when a request includes an explicit `runner` (set in `env.json` or forwarded by the client), creation is filtered to matching workers; otherwise routing falls back to least-loaded across the cluster.
+
+If the host has no usable runner the worker exits without registering. Pass `--skip-preflight` (or `GYM_ANYTHING_WORKER_SKIP_PREFLIGHT=1`) for local development and tests that don't actually execute a real runner. The previous `--skip-kvm-check` flag and `GYM_ANYTHING_WORKER_SKIP_KVM_CHECK` env var still work as deprecated aliases.
+
+To assert that a specific runner must be available before the worker comes up — e.g. when a Slurm job is reserved for QEMU work and should fail fast otherwise — pass `--must-support-runner qemu` (or `GYM_ANYTHING_WORKER_MUST_SUPPORT_RUNNER=qemu,docker` for multiple). The preflight raises and the worker exits if any listed runner is unavailable.
+
 ## Python Usage
 
 From Python, the remote client looks like this:

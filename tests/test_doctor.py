@@ -5,7 +5,16 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from gym_anything.doctor import render_doctor_text, run_doctor, scan_verifier_imports
+from gym_anything import doctor
+from gym_anything.doctor import (
+    DEFAULT_KVM_DEVICE,
+    check_kvm_access,
+    get_available_runners,
+    get_runner_status,
+    render_doctor_text,
+    run_doctor,
+    scan_verifier_imports,
+)
 
 
 class DoctorTests(unittest.TestCase):
@@ -47,6 +56,64 @@ class DoctorTests(unittest.TestCase):
         rendered = render_doctor_text(report)
 
         self.assertIn("overall=failed", rendered)
+
+
+class KvmProbeIntegrationTests(unittest.TestCase):
+    """KVM is part of get_runner_status for QEMU-family runners on Linux."""
+
+    def test_check_kvm_access_raises_with_actionable_message(self) -> None:
+        # Pick a path that definitely doesn't exist; we don't want this test
+        # to depend on host KVM availability.
+        missing = "/definitely/not/a/real/kvm/device"
+        with self.assertRaisesRegex(RuntimeError, "does not exist"):
+            check_kvm_access(missing)
+
+    def test_get_runner_status_marks_qemu_unavailable_when_kvm_missing(self) -> None:
+        with mock.patch.object(doctor, "_IS_LINUX", True), \
+             mock.patch.object(doctor, "_IS_MACOS", False), \
+             mock.patch("gym_anything.doctor.shutil.which", return_value="/usr/bin/apptainer"), \
+             mock.patch.object(
+                doctor, "_probe_kvm_openable", return_value=(False, "/dev/kvm does not exist")
+             ):
+            status = get_runner_status()
+
+        qemu = status["qemu"]
+        self.assertFalse(qemu["available"])
+        self.assertIn("kvm", qemu["deps"])
+        self.assertFalse(qemu["deps"]["kvm"]["installed"])
+        self.assertEqual(qemu["deps"]["kvm"]["reason"], "/dev/kvm does not exist")
+
+    def test_get_runner_status_marks_qemu_available_when_kvm_ok(self) -> None:
+        with mock.patch.object(doctor, "_IS_LINUX", True), \
+             mock.patch.object(doctor, "_IS_MACOS", False), \
+             mock.patch("gym_anything.doctor.shutil.which", return_value="/usr/bin/apptainer"), \
+             mock.patch.object(doctor, "_probe_kvm_openable", return_value=(True, None)):
+            status = get_runner_status()
+
+        qemu = status["qemu"]
+        self.assertTrue(qemu["available"])
+        self.assertTrue(qemu["deps"]["kvm"]["installed"])
+        self.assertEqual(qemu["deps"]["kvm"]["path"], DEFAULT_KVM_DEVICE)
+
+    def test_get_runner_status_skips_kvm_probe_on_macos(self) -> None:
+        with mock.patch.object(doctor, "_IS_LINUX", False), \
+             mock.patch.object(doctor, "_IS_MACOS", True), \
+             mock.patch.object(doctor, "_probe_kvm_openable") as probe:
+            status = get_runner_status()
+        # qemu / avd are filtered out on macOS via the platform reason
+        self.assertEqual(status["qemu"].get("reason"), "requires Apptainer (Linux only)")
+        probe.assert_not_called()
+
+    def test_get_available_runners_returns_only_ready(self) -> None:
+        fake_status = {
+            "docker": {"available": True, "deps": {}},
+            "qemu": {"available": False, "deps": {}},
+            "local": {"available": True, "deps": {}},
+        }
+        self.assertEqual(
+            sorted(get_available_runners(fake_status)),
+            ["docker", "local"],
+        )
 
 
 if __name__ == "__main__":

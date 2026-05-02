@@ -168,7 +168,15 @@ class RemoteGymEnv:
 
         if self.verifier_env:
             data["verifier_env"] = self.verifier_env
-        
+
+        # Hint the master at which runner this env needs so it can route to a
+        # worker that advertises support. Best-effort: when the spec doesn't
+        # set ``runner`` explicitly the master falls back to runner-agnostic
+        # routing.
+        runner_hint = self._infer_runner_hint()
+        if runner_hint:
+            data["runner"] = runner_hint
+
         # Send request
         response = requests.post(
             f"{self.remote_url}/envs/create",
@@ -176,9 +184,22 @@ class RemoteGymEnv:
             timeout=self.timeout
         )
         response.raise_for_status()
-        
+
         result = response.json()
         self.env_id = result["env_id"]
+
+    def _infer_runner_hint(self) -> Optional[str]:
+        """Pull an explicit ``runner`` value off the loaded EnvSpec, if any."""
+        spec = self.env_spec
+        if spec is None:
+            return None
+        if isinstance(spec, dict):
+            value = spec.get("runner")
+        else:
+            value = getattr(spec, "runner", None)
+        if isinstance(value, str) and value:
+            return value
+        return None
 
     def _load_local_config_specs(
         self,

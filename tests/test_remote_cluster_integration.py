@@ -138,6 +138,7 @@ class RemoteClusterIntegrationTests(unittest.TestCase):
                         "1",
                         "--advertise-host",
                         "127.0.0.1",
+                        "--skip-preflight",
                     ],
                     cwd=repo_root,
                     log_path=tmp_path / f"worker-{port}.log",
