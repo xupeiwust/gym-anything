@@ -78,6 +78,7 @@ Issues = "https://github.com/cmu-l3/gym-anything/issues"
 [project.scripts]
 gym-anything = "gym_anything.cli:main"
 gym-anything-dashboard = "gym_anything.remote.dashboard_app:main"
+gym-anything-extras = "gym_anything.extras_cli:main"
 gym-anything-master = "gym_anything.remote.master:main"
 gym-anything-trajectory-viewer = "gym_anything.dashboards.trajectory.app:main"
 gym-anything-worker = "gym_anything.remote.worker:main"

@@ -58,3 +58,13 @@ A passing test suite with a broken VNC session is a broken change. Live test is 
   handling).
 - No leftover `breakpoint()`, commented-out blocks, or `print()` debug calls
   in library code.
+
+## Mindset
+
+- No placeholders. No "we'll add it later." No "stub for now." No
+  hedge-everything questions like "should I scope this down?" If something
+  belongs in the design, ship it fully. If it doesn't, leave it out
+  cleanly — not as a half-built artifact with a TODO.
+- Propose the proper integration and execute on it. If a real design
+  question exists, name it sharply with a recommended answer and move on
+  — not options dressed as cowardice.
