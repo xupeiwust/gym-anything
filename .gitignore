@@ -38,3 +38,6 @@ logs
 # creation_audit pipeline outputs (extras/research/software_as_env/creation_audit/method.py)
 audits/
 creation_audit_logs/
+task_generation_runs/
+task_result.json
+.vscode

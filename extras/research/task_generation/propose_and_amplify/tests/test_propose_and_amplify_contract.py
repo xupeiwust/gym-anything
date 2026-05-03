@@ -217,9 +217,9 @@ class ProposeCcPromptIntegrityTests(unittest.TestCase):
                 )
         return captured
 
-    def test_three_prompts_emitted(self):
+    def test_four_prompts_emitted(self):
         prompts = self._capture_prompts()
-        self.assertEqual(len(prompts), 3)
+        self.assertEqual(len(prompts), 4)
 
     def test_step1_prompt_text(self):
         prompts = self._capture_prompts()
@@ -269,6 +269,41 @@ class ProposeCcPromptIntegrityTests(unittest.TestCase):
         getting_started = notes_dir / "00_getting_started.md"
         self.assertIn(f"@{getting_started.as_posix()}", prompts[0])
         self.assertIn(notes_dir.as_posix(), prompts[0])
+
+    def test_step4_writes_seed_tasks_json_at_correct_path(self):
+        prompts = self._capture_prompts()
+        # Step 4 must instruct the agent to put seed_tasks.json at the
+        # canonical location and use the bare-name JSON list format.
+        step4 = prompts[3]
+        self.assertIn(
+            "benchmarks/cua_world/environments/moodle_env/tasks/seed_tasks.json",
+            step4,
+        )
+        self.assertIn("JSON array", step4)
+        self.assertIn("no @version suffix", step4)
+        self.assertIn("new tasks you just created", step4)
+
+    def test_step4_skipped_when_start_idx_advances_past_it(self):
+        from extras.research.task_generation.propose_and_amplify.pipeline import propose_cc
+        captured: list[str] = []
+
+        def fake_run_claude(binary, args, *, cwd, timeout):
+            for i, token in enumerate(args):
+                if token == "-p" and i + 1 < len(args):
+                    captured.append(args[i + 1])
+                    break
+
+        with mock.patch.object(propose_cc, "run_claude", side_effect=fake_run_claude), \
+             mock.patch.object(propose_cc, "_resolve_bin",
+                               return_value=Path("/fake/claude")):
+            with tempfile.TemporaryDirectory() as tmp:
+                propose_cc.run(
+                    target_env_dir="moodle_env",
+                    workspace=Path(tmp),
+                    logs_dir=Path(tmp) / "logs",
+                    start_idx=4,  # past every step including the new one
+                )
+        self.assertEqual(captured, [])
 
 
 class SeedTasksJsonTests(unittest.TestCase):

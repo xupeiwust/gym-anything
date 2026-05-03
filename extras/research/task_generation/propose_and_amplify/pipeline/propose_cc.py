@@ -166,6 +166,29 @@ def run(
     else:
         print("Resuming from previous session, skipping step 3")
 
+    # --- Step 4: Record seeds the agent just created in seed_tasks.json ---
+    if not start_idx > 3:
+        print("\n=== Step 4: Write seed_tasks.json ===")
+        run_claude(binary, [
+            "-p",
+            (
+                f"now write a seed_tasks.json file at "
+                f"benchmarks/cua_world/environments/{target_env_dir}/tasks/seed_tasks.json "
+                f"listing exactly the new tasks you just created in this session. "
+                f"format is a JSON array of bare task name strings (no @version suffix, "
+                f'no other keys), e.g. ["task_alpha", "task_beta"]. use the exact task '
+                f"folder names you wrote. if the file already exists, replace it with "
+                f"this list."
+            ),
+            "--dangerously-skip-permissions",
+            "--resume", session_id,
+            "--disallowedTools", "AskUserQuestion,EnterPlanMode,ExitPlanMode,Task(Plan)",
+            "--model", model,
+        ], cwd=workspace, timeout=timeout)
+        append_log("Step 4 (seed_tasks.json) Completed")
+    else:
+        print("Resuming from previous session, skipping step 4")
+
     print(f"\n=== Task Creation Complete ===")
     print(f"Session ID: {session_id}")
     print(f"Env Directory: {target_env_dir}")

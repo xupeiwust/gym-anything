@@ -3,11 +3,12 @@ title: Introduction
 description: Gym Anything is a framework for building and running computer-use environments.
 ---
 
-We organize it around three main parts:
+We organize it around four parts:
 
 - `src/gym_anything/`: the core responsible for creating, managing and running environments.
 - `benchmarks/cua_world/`: benchmark environments, tasks, and support files
 - `agents/`: reference agent implementations and evaluation loops
+- `extras/research/`: research methods built on top of the library (env creation, task generation)
 
 The core idea is simple:
 
@@ -40,6 +41,9 @@ The framework should be understood in this order:
   </Card>
   <Card icon={<Bot />} title="Agents" href="/agents">
     Use that API to interact with environments
+  </Card>
+  <Card icon={<FlaskConical />} title="Extras" href="/extras">
+    Research methods that use the library (env creation, task generation)
   </Card>
 </Cards>
 
