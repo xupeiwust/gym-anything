@@ -1,0 +1,65 @@
+{
+  "task_id": "phonemic_sound_boxes@1",
+  "task_completion": [
+    {
+      "id": "title_sound_boxes",
+      "description": "Verify the flipchart is titled 'Sound Boxes'",
+      "points": 10,
+      "visual_evidence": "Look for the text 'Sound Boxes' added to the canvas or visible in the flipchart tab/title bar."
+    },
+    {
+      "id": "cat_image_imported",
+      "description": "Verify the Cat image is imported onto the canvas",
+      "points": 10,
+      "visual_evidence": "Look for an image of a cat visible on the ActivInspire page."
+    },
+    {
+      "id": "cat_sound_boxes",
+      "description": "Verify there are 3 square boxes below the Cat image",
+      "points": 20,
+      "visual_evidence": "Look for exactly 3 square or rectangular shapes positioned directly underneath the cat image."
+    },
+    {
+      "id": "frog_image_imported",
+      "description": "Verify the Frog image is imported onto the canvas",
+      "points": 10,
+      "visual_evidence": "Look for an image of a frog visible on the ActivInspire page."
+    },
+    {
+      "id": "frog_sound_boxes",
+      "description": "Verify there are 4 square boxes below the Frog image",
+      "points": 20,
+      "visual_evidence": "Look for exactly 4 square or rectangular shapes positioned directly underneath the frog image."
+    },
+    {
+      "id": "red_circular_chips",
+      "description": "Verify there are at least 5 red circular chips at the bottom",
+      "points": 15,
+      "visual_evidence": "Look for 5 or more red circular shapes placed at the bottom area of the ActivInspire page."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Verify the flipchart is saved to the correct path",
+      "points": 15,
+      "visual_evidence": "Look for a 'Save As' dialog or the main window title bar showing the file saved as 'phonemic_awareness.flipchart' in the '/home/ga/Documents/Flipcharts/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_activinspire_gui",
+      "description": "Verify the agent used the ActivInspire GUI to create the activity",
+      "visual_evidence": "Look for screenshots showing interaction with the ActivInspire application interface, including its toolbars, shape tools, and canvas."
+    },
+    {
+      "id": "no_terminal_generation",
+      "description": "Verify the agent did not use terminal commands or scripts to bypass GUI creation",
+      "visual_evidence": "Ensure the agent is not using a terminal window to run a script that generates the .flipchart ZIP archive programmatically."
+    },
+    {
+      "id": "genuine_shapes_used",
+      "description": "Verify the agent used shape tools rather than pasting a single pre-made image of the whole activity",
+      "visual_evidence": "Look for evidence of individual shapes being drawn or manipulated (e.g., selection handles on individual boxes or circles) rather than a single static image containing all elements."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating an Elkonin Boxes (Sound Boxes) activity in ActivInspire. There must be exactly 3 square boxes for the Cat (representing 3 phonemes: /k/ /\u00e6/ /t/) and 4 square boxes for the Frog (representing 4 phonemes: /f/ /r/ /\u0252/ /g/). There must be at least 5 red circular chips at the bottom of the page. The final file must be saved as 'phonemic_awareness.flipchart' in /home/ga/Documents/Flipcharts/."
+}

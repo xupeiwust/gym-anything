@@ -1,0 +1,53 @@
+{
+  "task_id": "register_and_report_host_activity@1",
+  "task_completion": [
+    {
+      "id": "register_alice_chen",
+      "description": "Register Alice Chen for host James Wilson",
+      "points": 20,
+      "visual_evidence": "Screenshot showing Jolly Lobby Track with Alice Chen's details (Company: TechFlow Inc, Host: James Wilson, Purpose: Vendor Meeting) being entered or successfully listed."
+    },
+    {
+      "id": "register_bob_martinez",
+      "description": "Register Bob Martinez for host James Wilson",
+      "points": 20,
+      "visual_evidence": "Screenshot showing Jolly Lobby Track with Bob Martinez's details (Company: SoftSys Global, Host: James Wilson, Purpose: Lunch) being entered or successfully listed."
+    },
+    {
+      "id": "register_charlie_davis",
+      "description": "Register Charlie Davis for host Sarah Connor",
+      "points": 20,
+      "visual_evidence": "Screenshot showing Jolly Lobby Track with Charlie Davis's details (Company: Network Solutions, Host: Sarah Connor, Purpose: Maintenance) being entered or successfully listed."
+    },
+    {
+      "id": "filter_report",
+      "description": "Generate a report filtered for host James Wilson",
+      "points": 20,
+      "visual_evidence": "Screenshot showing a report or data view in Jolly Lobby Track filtered to only display visitors for James Wilson (Alice Chen and Bob Martinez), visibly excluding Charlie Davis."
+    },
+    {
+      "id": "export_report",
+      "description": "Export the filtered report to /home/ga/Documents/james_wilson_report.csv",
+      "points": 20,
+      "visual_evidence": "Screenshot showing a save dialog or file manager confirming the export of 'james_wilson_report.csv' to the '/home/ga/Documents' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_jolly_lobby_track",
+      "description": "Agent used the Jolly Lobby Track application to enter data",
+      "visual_evidence": "The Jolly Lobby Track GUI is visible in the screenshots with the visitor data being entered, rather than using terminal scripts or direct database manipulation."
+    },
+    {
+      "id": "no_text_editor_csv",
+      "description": "Agent did not manually type the CSV file in a text editor",
+      "visual_evidence": "Absence of text editors (like gedit, nano, vim) being used to manually write the CSV content."
+    },
+    {
+      "id": "gui_export_used",
+      "description": "Agent used the application's export functionality",
+      "visual_evidence": "A save/export dialog from the application is used to create the CSV file, rather than terminal commands like echo or cat."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected output file is 'james_wilson_report.csv' located in '/home/ga/Documents'. The report must contain the strings 'Alice', 'Chen', 'Bob', 'Martinez', 'TechFlow', and 'SoftSys'. It must NOT contain 'Charlie', 'Davis', 'Network Solutions', 'Sarah', or 'Connor'."
+}

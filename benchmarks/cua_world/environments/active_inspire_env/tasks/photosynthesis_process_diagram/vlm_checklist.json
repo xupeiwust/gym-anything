@@ -1,0 +1,59 @@
+{
+  "task_id": "photosynthesis_process_diagram@1",
+  "task_completion": [
+    {
+      "id": "page_1_title_and_definition",
+      "description": "Verify Page 1 contains the title and definition of photosynthesis.",
+      "points": 15,
+      "visual_evidence": "A flipchart page displaying the word 'Photosynthesis' as a title and text describing it as the process by which plants make their own food."
+    },
+    {
+      "id": "page_2_sun_and_plant_shapes",
+      "description": "Verify Page 2 contains a yellow sun and a green plant representation.",
+      "points": 15,
+      "visual_evidence": "A flipchart page showing a yellow circle or ellipse representing the sun, and a green shape or drawing representing a plant."
+    },
+    {
+      "id": "page_2_input_arrows_and_labels",
+      "description": "Verify Page 2 has arrows pointing toward the plant with correct input labels.",
+      "points": 20,
+      "visual_evidence": "Arrows visually pointing TOWARD the green plant shape, accompanied by the text labels 'Sunlight', 'Water', and 'Carbon Dioxide'."
+    },
+    {
+      "id": "page_2_output_arrows_and_labels",
+      "description": "Verify Page 2 has arrows pointing away from the plant with correct output labels.",
+      "points": 20,
+      "visual_evidence": "Arrows visually pointing AWAY FROM the green plant shape, accompanied by the text labels 'Oxygen' and 'Glucose'."
+    },
+    {
+      "id": "page_3_chemical_equation",
+      "description": "Verify Page 3 contains the correct chemical word equation.",
+      "points": 15,
+      "visual_evidence": "A flipchart page displaying the exact text: 'Carbon Dioxide + Water + Sunlight -> Glucose + Oxygen'."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Verify the flipchart is saved with the correct name and path.",
+      "points": 15,
+      "visual_evidence": "The ActivInspire window title bar or a 'Save As' dialog showing the file named 'photosynthesis_lesson.flipchart' in the '/home/ga/Documents/Flipcharts/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_activinspire_gui",
+      "description": "Verify the agent used the ActivInspire application GUI to create the flipchart.",
+      "visual_evidence": "The ActivInspire application interface (toolbars, page browser, canvas) should be visible in the screenshots, rather than a text editor or script."
+    },
+    {
+      "id": "native_shapes_and_text",
+      "description": "Verify the agent constructed the diagram using native shapes and text boxes.",
+      "visual_evidence": "Evidence of the agent using ActivInspire's shape tools (circle, arrows) and text box tools, rather than pasting a single pre-made image of the photosynthesis process from a web browser."
+    },
+    {
+      "id": "no_terminal_bypass",
+      "description": "Verify the agent did not use terminal commands to bypass GUI interaction.",
+      "visual_evidence": "The terminal should not be used to directly write or manipulate the .flipchart binary/archive file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a 3-page ActivInspire flipchart file saved exactly at /home/ga/Documents/Flipcharts/photosynthesis_lesson.flipchart. Page 1 must have the title 'Photosynthesis' and a definition. Page 2 must have a yellow sun (circle/ellipse), a green plant shape, arrows pointing to the plant labeled 'Sunlight', 'Water', 'Carbon Dioxide', and arrows pointing away labeled 'Oxygen', 'Glucose'. Page 3 must contain the equation 'Carbon Dioxide + Water + Sunlight -> Glucose + Oxygen'."
+}

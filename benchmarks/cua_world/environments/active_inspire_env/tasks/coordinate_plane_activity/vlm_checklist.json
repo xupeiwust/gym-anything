@@ -1,0 +1,53 @@
+{
+  "task_id": "coordinate_plane_activity@1",
+  "task_completion": [
+    {
+      "id": "page_1_content",
+      "description": "Verify that the first page contains the required title and instruction text.",
+      "points": 15,
+      "visual_evidence": "Screenshot of ActivInspire showing Page 1 with the text 'Plotting Ordered Pairs' and instructions containing the phrase 'coordinate plane'."
+    },
+    {
+      "id": "page_2_axes_quadrants",
+      "description": "Verify that the second page has a coordinate plane with labeled axes and quadrants.",
+      "points": 20,
+      "visual_evidence": "Screenshot of ActivInspire showing Page 2 with drawn x and y axes labeled 'x' and 'y', and the four quadrants labeled with Roman numerals 'I', 'II', 'III', and 'IV'."
+    },
+    {
+      "id": "page_2_plotted_points",
+      "description": "Verify that the second page has five distinct points plotted on the coordinate plane.",
+      "points": 20,
+      "visual_evidence": "Screenshot of Page 2 showing at least five visual markers (such as dots, shapes, or crosses) plotted in the correct relative positions on the coordinate plane."
+    },
+    {
+      "id": "page_2_point_labels",
+      "description": "Verify that the plotted points are labeled with the correct coordinates.",
+      "points": 25,
+      "visual_evidence": "Screenshot of Page 2 showing visible text labels for the points: (3, 4), (-2, 5), (-4, -3), (5, -2), and (0, 0) placed near their respective plotted points."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "Verify the flipchart is saved with the correct filename and path.",
+      "points": 20,
+      "visual_evidence": "Screenshot showing the 'Save As' dialog or the ActivInspire window title bar indicating the file is saved as 'coordinate_plane.flipchart' in the '/home/ga/Documents/Flipcharts/' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_activinspire_gui",
+      "description": "Verify the agent used the ActivInspire graphical user interface to create the flipchart.",
+      "visual_evidence": "Screenshots show the ActivInspire application open and being actively used, rather than terminal commands or text editors generating the file."
+    },
+    {
+      "id": "manual_creation_of_elements",
+      "description": "Verify the agent manually created the text, axes, and points using the application's tools.",
+      "visual_evidence": "Screenshots show the agent using ActivInspire's text tool, shape tool, or pen tool to construct the coordinate plane and labels, rather than just importing a pre-made image of a coordinate plane."
+    },
+    {
+      "id": "genuine_save_action",
+      "description": "Verify the file was saved through the application's standard save mechanism.",
+      "visual_evidence": "Screenshots show interaction with the 'File > Save' or 'File > Save As' menu and the subsequent file explorer dialog."
+    }
+  ],
+  "privileged_info_for_vlm": "The flipchart must be exactly 2 pages. Page 1 must include the text 'Plotting Ordered Pairs' and 'coordinate plane'. Page 2 must include a coordinate plane with 'x' and 'y' axis labels, quadrant labels 'I', 'II', 'III', 'IV', and exactly 5 plotted points labeled '(3, 4)', '(-2, 5)', '(-4, -3)', '(5, -2)', and '(0, 0)'. The final file must be saved to '/home/ga/Documents/Flipcharts/coordinate_plane.flipchart'."
+}

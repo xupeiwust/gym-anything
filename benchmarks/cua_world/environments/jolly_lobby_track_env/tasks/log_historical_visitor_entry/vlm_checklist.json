@@ -1,0 +1,59 @@
+{
+  "task_id": "log_historical_visitor_entry@1",
+  "task_completion": [
+    {
+      "id": "enter_visitor_details",
+      "description": "Enter the visitor's name and company.",
+      "points": 15,
+      "visual_evidence": "Look for input fields containing 'Emmett Brown' (or 'Dr. Emmett Brown') for the name and 'Future Industries' for the company."
+    },
+    {
+      "id": "enter_visit_date_and_purpose",
+      "description": "Set the visit date to yesterday and the purpose to maintenance.",
+      "points": 15,
+      "visual_evidence": "Look for a date picker or text field showing yesterday's date (relative to the system date visible in the OS taskbar) and a field or dropdown indicating 'Maintenance' as the visit purpose."
+    },
+    {
+      "id": "enter_visit_times",
+      "description": "Set the check-in and check-out times.",
+      "points": 20,
+      "visual_evidence": "Look for time input fields or dropdowns showing '09:00 AM' (or 09:00) for check-in and '10:30 AM' (or 10:30) for check-out."
+    },
+    {
+      "id": "submit_visitor_record",
+      "description": "Submit or save the visitor record.",
+      "points": 10,
+      "visual_evidence": "Look for the agent clicking a 'Save', 'Submit', or 'Add' button, followed by the new record appearing in the main visitor log list."
+    },
+    {
+      "id": "initiate_export",
+      "description": "Initiate the export of the visitor log.",
+      "points": 15,
+      "visual_evidence": "Look for the agent clicking an 'Export', 'Download', or 'Save As' button within the visitor log application."
+    },
+    {
+      "id": "save_exported_file",
+      "description": "Save the exported file to the specified path.",
+      "points": 25,
+      "visual_evidence": "Look for a file save dialog showing the path '/home/ga/Documents/' and the filename 'verification_export.csv', or a file manager/terminal confirming the file was saved to this exact location."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction",
+      "description": "The agent used a GUI application to enter the visitor data.",
+      "visual_evidence": "Look for a graphical visitor management application, form, or spreadsheet being used, rather than terminal commands."
+    },
+    {
+      "id": "genuine_export",
+      "description": "The agent exported the file using the application's export functionality.",
+      "visual_evidence": "Look for an export dialog or save prompt originating from the application, rather than the agent manually creating a CSV file in a text editor or terminal."
+    },
+    {
+      "id": "no_scripting_shortcuts",
+      "description": "The agent did not use a script or terminal command to bypass the UI.",
+      "visual_evidence": "Ensure there are no terminal windows where the agent uses 'echo' or python scripts to directly write the CSV file without interacting with the visitor log system."
+    }
+  ],
+  "privileged_info_for_vlm": "Visitor Name: Emmett Brown (or Dr. Emmett Brown). Company: Future Industries. Date: Yesterday (relative to the system clock). Purpose: Maintenance. Check-in: 09:00 AM. Check-out: 10:30 AM. Export Path: /home/ga/Documents/verification_export.csv."
+}

@@ -1,0 +1,53 @@
+{
+  "task_id": "lewis_dot_structure_lesson@1",
+  "task_completion": [
+    {
+      "id": "page_1_title_and_octet_rule",
+      "description": "Page 1 includes the title 'Lewis Dot Structures', the text 'Covalent Bonding', and a definition of the Octet Rule.",
+      "points": 15,
+      "visual_evidence": "Look at the main canvas or page browser thumbnails for a page containing the text 'Lewis Dot Structures', 'Covalent Bonding', and a definition mentioning the 'Octet Rule' (or 8 valence electrons)."
+    },
+    {
+      "id": "page_2_valence_electrons",
+      "description": "Page 2 includes the title 'Valence Electrons' and the element symbols H, C, N, O, and Cl with dots representing their valence electrons.",
+      "points": 25,
+      "visual_evidence": "Look for a page titled 'Valence Electrons' containing the letters H, C, N, O, and Cl. Each letter should have dots around it representing valence electrons (H: 1, C: 4, N: 5, O: 6, Cl: 7)."
+    },
+    {
+      "id": "page_3_water_example",
+      "description": "Page 3 includes the title 'Water (H2O)' and a Lewis structure drawing for water.",
+      "points": 25,
+      "visual_evidence": "Look for a page titled 'Water (H2O)' containing a diagram of a water molecule (an O atom connected to two H atoms, with dots representing the 4 non-bonding electrons on the Oxygen)."
+    },
+    {
+      "id": "page_4_practice",
+      "description": "Page 4 includes the title 'Practice' and lists the molecules CO2, NH3, and CH4.",
+      "points": 15,
+      "visual_evidence": "Look for a page titled 'Practice' that contains the text 'CO2', 'NH3', and 'CH4'."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "The flipchart is saved as 'lewis_dot_structures.flipchart' in the correct directory.",
+      "points": 20,
+      "visual_evidence": "Look at the ActivInspire window title bar for the filename 'lewis_dot_structures.flipchart', or a save dialog showing the file being saved to the '/home/ga/Documents/Flipcharts' directory."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_activinspire_gui",
+      "description": "The agent used the ActivInspire GUI to create the flipchart.",
+      "visual_evidence": "Screenshots should show the ActivInspire application open with the flipchart being edited on the canvas, rather than a text editor or terminal."
+    },
+    {
+      "id": "drawn_shapes_for_electrons",
+      "description": "The agent manually added dots or shapes for the valence electrons.",
+      "visual_evidence": "Look for evidence of shapes (like circles or dots) or text characters being placed around the element symbols on the canvas."
+    },
+    {
+      "id": "genuine_file_save",
+      "description": "The agent used the application's save functionality to save the file.",
+      "visual_evidence": "Look for the 'Save' or 'Save As' dialog box in ActivInspire being used to specify the filename and directory."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a 4-page ActivInspire flipchart saved to /home/ga/Documents/Flipcharts/lewis_dot_structures.flipchart. Page 1: Title 'Lewis Dot Structures', text 'Covalent Bonding', and Octet Rule definition (mentioning 8 valence electrons). Page 2: Title 'Valence Electrons', showing element symbols H, C, N, O, and Cl with dots representing valence electrons (H=1, C=4, N=5, O=6, Cl=7). Page 3: Title 'Water (H2O)', showing Lewis structure for water (H-O-H with 2 lone pairs on O). Page 4: Title 'Practice', listing molecules CO2, NH3, CH4. Minimum 10 shapes (electron dots) should be present across the document."
+}

@@ -1,6 +1,7 @@
 <div align="center">
     <h1>Gym-Anything: Turn Any Software into an Agent Environment</h1>
     <a href="https://cmu-l3.github.io/gym-anything"><img src="https://img.shields.io/website?down_message=down&style=for-the-badge&up_message=up&url=https%3A%2F%2Fcmu-l3.github.io%2Fgym-anything"></a>
+    <a href="https://cmu-l3.github.io/gym-anything/docs/"><img src="https://img.shields.io/badge/Docs-Read-blue?style=for-the-badge&logo=readthedocs&logoColor=white"></a>
     <a href="https://arxiv.org/abs/2604.06126"><img src="https://img.shields.io/badge/arXiv-2604.06126-red.svg?style=for-the-badge"></a>
     <a href="https://cmu-l3.github.io/gym-anything/interactive_paper.html"><img src="https://img.shields.io/badge/Interactive-Paper-purple?style=for-the-badge"></a>
     <a href="https://github.com/cmu-l3/gym-anything"><img src="https://img.shields.io/badge/GitHub-Code-black?style=for-the-badge&logo=github"></a>

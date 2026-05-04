@@ -1,0 +1,59 @@
+{
+  "task_id": "water_cycle_flipchart@1",
+  "task_completion": [
+    {
+      "id": "page_1_intro",
+      "description": "Page 1 contains the title 'The Water Cycle' and subtitles for the three main stages.",
+      "points": 20,
+      "visual_evidence": "Look for a flipchart page containing the main text 'The Water Cycle' and the words 'Evaporation', 'Condensation', and 'Precipitation'."
+    },
+    {
+      "id": "page_2_shapes",
+      "description": "Page 2 contains at least three visual shapes.",
+      "points": 15,
+      "visual_evidence": "Look for a flipchart page displaying a visual diagram with at least three distinct shapes (e.g., circles, squares, clouds, arrows, or drawn objects)."
+    },
+    {
+      "id": "page_2_labels",
+      "description": "The shapes on Page 2 are labeled with the three water cycle stages.",
+      "points": 20,
+      "visual_evidence": "Look for text labels 'Evaporation', 'Condensation', and 'Precipitation' placed near or inside the shapes on the diagram page."
+    },
+    {
+      "id": "page_3_title",
+      "description": "Page 3 contains the title 'Quick Check'.",
+      "points": 10,
+      "visual_evidence": "Look for a flipchart page with the heading or title 'Quick Check'."
+    },
+    {
+      "id": "page_3_questions",
+      "description": "Page 3 contains at least two written assessment questions.",
+      "points": 15,
+      "visual_evidence": "Look for at least two distinct written questions (typically ending with question marks) on the 'Quick Check' page."
+    },
+    {
+      "id": "file_saved_correctly",
+      "description": "The flipchart is saved to the correct directory with the correct filename.",
+      "points": 20,
+      "visual_evidence": "Look for a 'Save As' dialog showing the directory '/home/ga/Documents/Flipcharts' and the filename 'water_cycle_lesson.flipchart', or the application title bar showing this filename after saving."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_gui_application",
+      "description": "The agent used a presentation/flipchart GUI application (like ActivInspire) to create the lesson.",
+      "visual_evidence": "Look for the interface of a graphical presentation software with a canvas, toolbars, and page thumbnails, rather than a plain text editor or terminal."
+    },
+    {
+      "id": "genuine_shapes_used",
+      "description": "The agent inserted actual graphical shapes rather than typing ASCII art.",
+      "visual_evidence": "Look for vector or raster shapes drawn using the application's shape or pen tools, not text characters arranged to look like shapes."
+    },
+    {
+      "id": "saved_via_gui",
+      "description": "The file was saved using the application's graphical interface.",
+      "visual_evidence": "Look for interaction with the application's 'File > Save' menu or a graphical save dialog, rather than terminal commands creating the file."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a 3-page flipchart in a presentation application (like ActivInspire). Page 1 must have the title 'The Water Cycle' and list 'Evaporation', 'Condensation', and 'Precipitation'. Page 2 must have at least 3 graphical shapes labeled with these three stages. Page 3 must be titled 'Quick Check' and contain at least 2 questions. The final file must be saved exactly as '/home/ga/Documents/Flipcharts/water_cycle_lesson.flipchart'."
+}

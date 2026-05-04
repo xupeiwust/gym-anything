@@ -41,3 +41,4 @@ creation_audit_logs/
 task_generation_runs/
 task_result.json
 .vscode
+gemini_error_dumps/

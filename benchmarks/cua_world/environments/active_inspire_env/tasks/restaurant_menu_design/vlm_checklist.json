@@ -1,0 +1,59 @@
+{
+  "task_id": "restaurant_menu_design@1",
+  "task_completion": [
+    {
+      "id": "page_1_cover",
+      "description": "Create Page 1 (Cover) with the restaurant title and a logo/shape.",
+      "points": 20,
+      "visual_evidence": "In the ActivInspire canvas, a page containing the text 'The Golden Fork' and a shape or image acting as a logo."
+    },
+    {
+      "id": "page_2_appetizers_header",
+      "description": "Create Page 2 with the title 'Appetizers'.",
+      "points": 10,
+      "visual_evidence": "A page in ActivInspire with the text 'Appetizers' clearly visible as a header."
+    },
+    {
+      "id": "page_2_appetizers_items",
+      "description": "Add the required appetizer items and prices to Page 2.",
+      "points": 20,
+      "visual_evidence": "Text on the Appetizers page containing 'Garlic Bread' ($4.50), 'Mozzarella Sticks' ($6.00), and 'Garden Salad' ($5.25)."
+    },
+    {
+      "id": "page_3_entrees_header",
+      "description": "Create Page 3 with the title 'Entrees'.",
+      "points": 10,
+      "visual_evidence": "A page in ActivInspire with the text 'Entrees' clearly visible as a header."
+    },
+    {
+      "id": "page_3_entrees_items",
+      "description": "Add the required entree items and prices to Page 3.",
+      "points": 20,
+      "visual_evidence": "Text on the Entrees page containing 'Cheeseburger' ($12.00), 'Grilled Salmon' ($18.50), and 'Pasta Primavera' ($14.00)."
+    },
+    {
+      "id": "save_flipchart_file",
+      "description": "Save the flipchart to the correct directory with the correct filename.",
+      "points": 20,
+      "visual_evidence": "A 'Save As' dialog showing the directory '/home/ga/Documents/Flipcharts' and the filename 'restaurant_menu.flipchart', or the ActivInspire window title bar displaying 'restaurant_menu.flipchart' after saving."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "used_activinspire_gui",
+      "description": "The agent used the Promethean ActivInspire GUI to create the flipchart.",
+      "visual_evidence": "Screenshots should show the ActivInspire application interface being actively used to add text, shapes, and pages."
+    },
+    {
+      "id": "no_terminal_spoofing",
+      "description": "The agent did not use terminal commands to bypass the GUI and generate the .flipchart file directly.",
+      "visual_evidence": "The terminal should not show commands like 'zip', 'echo', or script executions attempting to construct the XML/ZIP structure of a .flipchart file manually."
+    },
+    {
+      "id": "genuine_page_creation",
+      "description": "The agent genuinely created 3 separate pages in the flipchart.",
+      "visual_evidence": "The ActivInspire Page Browser (usually on the left side) should show thumbnails for at least 3 distinct pages."
+    }
+  ],
+  "privileged_info_for_vlm": "The task requires creating a 3-page flipchart in Promethean ActivInspire. Page 1 must have 'The Golden Fork' and a logo/shape. Page 2 must have 'Appetizers' and the items: Garlic Bread ($4.50), Mozzarella Sticks ($6.00), Garden Salad ($5.25). Page 3 must have 'Entrees' and the items: Cheeseburger ($12.00), Grilled Salmon ($18.50), Pasta Primavera ($14.00). The file must be saved as 'restaurant_menu.flipchart' in '/home/ga/Documents/Flipcharts'. Note that .flipchart files are actually ZIP archives containing XML; the agent must use the ActivInspire GUI to create the file, not terminal commands."
+}

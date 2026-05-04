@@ -1,0 +1,53 @@
+{
+  "task_id": "export_host_visitor_history@1",
+  "task_completion": [
+    {
+      "id": "open_visitor_application",
+      "description": "Open the application containing visitor records",
+      "points": 10,
+      "visual_evidence": "Look for a visitor management application, database viewer, or spreadsheet containing visitor and host records being opened on the screen."
+    },
+    {
+      "id": "filter_by_host",
+      "description": "Filter the visitor records for the host 'James Wilson'",
+      "points": 20,
+      "visual_evidence": "Look for 'James Wilson' entered into a search bar, or a filter applied to the 'Host' column showing only records for James Wilson."
+    },
+    {
+      "id": "initiate_export",
+      "description": "Initiate the export or save process for the filtered records",
+      "points": 20,
+      "visual_evidence": "Look for the agent clicking an 'Export', 'Download', or 'Save As' button within the application to save the filtered list."
+    },
+    {
+      "id": "save_to_correct_path",
+      "description": "Save the exported file to the specified directory with the correct filename",
+      "points": 25,
+      "visual_evidence": "Look for a save dialog or file manager showing the file being saved as 'james_wilson_visitors.csv' specifically in the '/home/ga/Documents/' directory."
+    },
+    {
+      "id": "verify_exported_content",
+      "description": "Ensure the exported data contains exactly the correct records for James Wilson",
+      "points": 25,
+      "visual_evidence": "Look at the filtered application view or the opened CSV file to verify it contains exactly 1 visitor record (Robert Johnson) and no records for other hosts."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "no_terminal_cheating",
+      "description": "The agent used the GUI application to export the data, not terminal commands to bypass the UI",
+      "visual_evidence": "Ensure the file was generated via the application's export/save dialog, rather than using terminal commands like 'echo' or 'cat' to manually create the CSV file."
+    },
+    {
+      "id": "genuine_export_action",
+      "description": "The agent interacted with the actual application rather than manually typing data into a text editor",
+      "visual_evidence": "Look for interaction with a database/spreadsheet/visitor app UI. The agent should not just open a blank text editor and type the CSV contents manually."
+    },
+    {
+      "id": "no_hardcoded_content",
+      "description": "The agent did not copy-paste expected answers directly from the task description",
+      "visual_evidence": "Ensure the agent actually searched/filtered the data source to find the visitor (Robert Johnson) rather than magically knowing the contents without viewing the source data."
+    }
+  ],
+  "privileged_info_for_vlm": "The target host is 'James Wilson'. The expected output file path is '/home/ga/Documents/james_wilson_visitors.csv'. The database contains exactly 1 visitor record for 'James Wilson' (visitor: Robert Johnson). The exported file must contain only this record and no records from other hosts."
+}

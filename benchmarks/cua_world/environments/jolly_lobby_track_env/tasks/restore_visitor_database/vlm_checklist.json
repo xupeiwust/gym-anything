@@ -1,0 +1,59 @@
+{
+  "task_id": "restore_visitor_database@1",
+  "task_completion": [
+    {
+      "id": "lobby_track_opened",
+      "description": "Lobby Track application is opened",
+      "points": 10,
+      "visual_evidence": "The Lobby Track application window is visible on the screen."
+    },
+    {
+      "id": "restore_database_dialog",
+      "description": "Database restore dialog or settings accessed",
+      "points": 15,
+      "visual_evidence": "A dialog box, menu, or settings page related to restoring or importing a database is open within Lobby Track."
+    },
+    {
+      "id": "backup_file_selected",
+      "description": "Backup file selected for restoration",
+      "points": 20,
+      "visual_evidence": "A file selection dialog shows 'LobbyTrackDB_backup.mdb' selected from the 'C:\\LobbyTrackBackup' directory."
+    },
+    {
+      "id": "database_restored",
+      "description": "Database restoration confirmed",
+      "points": 20,
+      "visual_evidence": "A success message indicating the database was restored, or the main Lobby Track window displaying the newly populated visitor records."
+    },
+    {
+      "id": "confirmation_file_created",
+      "description": "Confirmation file created in the correct directory",
+      "points": 15,
+      "visual_evidence": "A text editor (e.g., Notepad) is open, and the title bar or save dialog indicates the file is named 'restore_confirmation.txt' and is being saved in 'C:\\LobbyTrackBackup'."
+    },
+    {
+      "id": "confirmation_text_written",
+      "description": "Required text and record count written to the confirmation file",
+      "points": 20,
+      "visual_evidence": "The text editor contains the exact phrase 'Database restored successfully' along with a number representing the approximate count of restored records."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_used_for_restore",
+      "description": "The database restoration was performed using the Lobby Track GUI",
+      "visual_evidence": "Screenshots show interaction with the Lobby Track GUI for restoring the database, rather than terminal commands like 'cp' or 'mv'."
+    },
+    {
+      "id": "records_verified_in_gui",
+      "description": "The agent checked the actual records in the application to get the count",
+      "visual_evidence": "Screenshots show the agent viewing the restored records in the Lobby Track interface to determine the count before writing it to the confirmation file."
+    },
+    {
+      "id": "genuine_text_editor_used",
+      "description": "The confirmation file was created using a GUI text editor",
+      "visual_evidence": "A graphical text editor (like Notepad) is used to write the confirmation message, rather than terminal commands like 'echo'."
+    }
+  ],
+  "privileged_info_for_vlm": "The backup file is located at C:\\LobbyTrackBackup\\LobbyTrackDB_backup.mdb. The confirmation file must be saved at C:\\LobbyTrackBackup\\restore_confirmation.txt and contain the exact text 'Database restored successfully' along with the approximate number of records restored."
+}

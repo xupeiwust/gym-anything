@@ -1,0 +1,59 @@
+{
+  "task_id": "implement_parking_pass_workflow@1",
+  "task_completion": [
+    {
+      "id": "schema_license_plate_added",
+      "description": "Verify the 'License Plate' text field is added to the Visitor database schema.",
+      "points": 20,
+      "visual_evidence": "Look for the Jolly Lobby Track database configuration or schema settings showing a new field named 'License Plate'."
+    },
+    {
+      "id": "template_created_and_named",
+      "description": "Verify a badge template named 'Parking Permit' is created.",
+      "points": 15,
+      "visual_evidence": "Look for a badge designer window, save dialog, or template list showing a template explicitly named 'Parking Permit'."
+    },
+    {
+      "id": "template_landscape_orientation",
+      "description": "Verify the badge template is landscape-oriented.",
+      "points": 10,
+      "visual_evidence": "Look at the badge canvas in the designer; it should be wider than it is tall (landscape orientation)."
+    },
+    {
+      "id": "template_visitor_name_field",
+      "description": "Verify the 'Visitor Name' field is included on the badge template.",
+      "points": 15,
+      "visual_evidence": "Look for a dynamic text element, database field placeholder, or label for 'Visitor Name' placed on the badge canvas."
+    },
+    {
+      "id": "template_license_plate_field",
+      "description": "Verify the 'License Plate' field is included on the badge template.",
+      "points": 20,
+      "visual_evidence": "Look for a dynamic text element, database field placeholder, or label for 'License Plate' placed on the badge canvas."
+    },
+    {
+      "id": "template_static_text",
+      "description": "Verify the static text 'PARKING PERMIT' is included on the badge template.",
+      "points": 20,
+      "visual_evidence": "Look for a static text element displaying exactly 'PARKING PERMIT' on the badge canvas."
+    }
+  ],
+  "integrity": [
+    {
+      "id": "gui_interaction_used",
+      "description": "Verify the agent used the Jolly Lobby Track GUI to make changes.",
+      "visual_evidence": "Screenshots should show interaction with the Jolly Lobby Track application interface, not terminal commands or scripts modifying underlying database or template files directly."
+    },
+    {
+      "id": "genuine_app_used",
+      "description": "Verify the badge was created in the actual application and not mocked in an image editor.",
+      "visual_evidence": "The badge template must be edited inside the Jolly Lobby Track badge designer, not in MS Paint, Photoshop, or a generic text editor."
+    },
+    {
+      "id": "changes_saved",
+      "description": "Verify the agent saved the configuration and template.",
+      "visual_evidence": "Look for the agent clicking a 'Save' button, a success confirmation message, or the new template appearing in the application's saved templates list."
+    }
+  ],
+  "privileged_info_for_vlm": "The expected field name to be added to the Visitor database is exactly 'License Plate'. The badge template must be named exactly 'Parking Permit' and must contain the exact static text 'PARKING PERMIT'."
+}
