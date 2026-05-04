@@ -1,66 +1,37 @@
 #!/bin/bash
-# Script to download Subway Surfers APK automatically
-# This runs on the HOST before the environment starts
-
-set -e
+# Host-side fetcher: downloads the Subway Surfers APK that cannot live in git.
+# Run once on the host before launching the env. Idempotent.
+#
+# SOURCE: APKPure CDN (APKPure displays SHA-256 on the download page, verified
+#         2026-05-04 to match the local copy sourced from APKMirror).
+#   https://apkpure.com/subway-surfers-2025/com.kiloo.subwaysurf/download/3.57.1
+#   Direct: https://d.apkpure.com/b/APK/com.kiloo.subwaysurf?versionCode=88332&nc=arm64-v8a%2Carmeabi-v7a&sv=23
+#
+# PACKAGE:       com.kiloo.subwaysurf
+# VERSION NAME:  3.57.1
+# VERSION CODE:  88332 (APKPure internal) / 1055792361676 (Play Store)
+# SHA-256:       053c70d370fde4f234a73a8500b490c5c86f21da0061d2d513944d2dc82bb652
+# SIZE:          226,501,966 bytes (216.01 MiB)
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APK_DIR="$SCRIPT_DIR/apks"
-APK_PATH="$APK_DIR/subway_surfers.apk"
+APK_PATH="$SCRIPT_DIR/apks/subway_surfers.apk"
+EXPECTED_SHA256="053c70d370fde4f234a73a8500b490c5c86f21da0061d2d513944d2dc82bb652"
 
-# Create apks directory if it doesn't exist
-mkdir -p "$APK_DIR"
+mkdir -p "$(dirname "$APK_PATH")"
 
-# Check if APK already exists
-if [ -f "$APK_PATH" ]; then
-    echo "Subway Surfers APK already exists at $APK_PATH"
+if [ -f "$APK_PATH" ] && echo "${EXPECTED_SHA256}  ${APK_PATH}" | sha256sum -c - >/dev/null 2>&1; then
+    echo "[ok] subway_surfers.apk already present and verified"
     exit 0
 fi
 
-echo "Downloading Subway Surfers APK..."
+echo "[fetch] subway_surfers.apk (226 MB — may take a minute)"
+curl -fsSL --retry 3 --retry-delay 5 --max-time 600 \
+    -A "Mozilla/5.0 (Linux; Android 11; Pixel 5)" \
+    -H "Referer: https://apkpure.com/subway-surfers-2025/com.kiloo.subwaysurf/download/3.57.1" \
+    -o "${APK_PATH}.tmp" \
+    "https://d.apkpure.com/b/APK/com.kiloo.subwaysurf?versionCode=88332&nc=arm64-v8a%2Carmeabi-v7a&sv=23"
 
-# Try multiple sources for reliability
-# Source 1: APKPure direct link (these change, so we try multiple)
-APKPURE_URL="https://d.apkpure.com/b/APK/com.kiloo.subwaysurf?version=latest"
-
-# Source 2: APKMirror (backup)
-# Note: APKMirror requires parsing HTML, so we use a direct download approach
-
-# Try downloading from APKPure
-echo "Attempting download from APKPure..."
-if curl -L -o "$APK_PATH.tmp" \
-    -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
-    --connect-timeout 30 \
-    --max-time 300 \
-    "$APKPURE_URL" 2>/dev/null; then
-
-    # Verify it's a valid APK (ZIP file with AndroidManifest.xml)
-    if file "$APK_PATH.tmp" | grep -q "Zip archive"; then
-        if unzip -l "$APK_PATH.tmp" 2>/dev/null | grep -q "AndroidManifest.xml"; then
-            mv "$APK_PATH.tmp" "$APK_PATH"
-            echo "Successfully downloaded Subway Surfers APK"
-            ls -la "$APK_PATH"
-            exit 0
-        fi
-    fi
-    rm -f "$APK_PATH.tmp"
-fi
-
-# Alternative: Try using wget with different user agent
-echo "Trying alternative download method..."
-if wget -O "$APK_PATH.tmp" \
-    --user-agent="Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36" \
-    --timeout=60 \
-    "https://d.apkpure.com/b/APK/com.kiloo.subwaysurf?version=latest" 2>/dev/null; then
-
-    if file "$APK_PATH.tmp" | grep -q "Zip archive"; then
-        mv "$APK_PATH.tmp" "$APK_PATH"
-        echo "Successfully downloaded Subway Surfers APK (method 2)"
-        exit 0
-    fi
-    rm -f "$APK_PATH.tmp"
-fi
-
-echo "ERROR: Failed to download Subway Surfers APK automatically"
-echo "Please manually download and place at: $APK_PATH"
-exit 1
+echo "${EXPECTED_SHA256}  ${APK_PATH}.tmp" | sha256sum -c -
+mv "${APK_PATH}.tmp" "$APK_PATH"
+echo "[ok] subway_surfers.apk downloaded and verified"

@@ -71,6 +71,70 @@ docker pull itechuw/openelis-global-2-frontend:develop || true
 docker pull itechuw/openelis-global-2-proxy:develop || true
 docker pull willfarrell/autoheal:1.2.0 || true
 
+# ─── Fetch MIMIC-III Clinical Database Demo v1.4 CSVs ───
+# Source: https://physionet.org/content/mimiciii-demo/1.4/
+# Public, no credentials required (ODC-BY licence).
+# These two files are not bundled in the repo; they are downloaded at build time
+# and verified by sha256 before being placed in /workspace/data/.
+echo "Fetching MIMIC-III Demo CSVs..."
+
+MIMIC_BASE="https://physionet.org/files/mimiciii-demo/1.4"
+DATA_DIR="/workspace/data"
+
+# Expected sha256 checksums (byte-identical to PhysioNet originals)
+LABEVENTS_SHA256="bca32a7242e739c0cbf1690270db83c10e38a27dbfa915eeb14f5a31a1e898fa"
+LABITEMS_SHA256="c573653bd06915e48a5fb5f3db01d75554350ec1a628aa91d01ef36daa4eae7f"
+
+fetch_and_verify() {
+    local url="$1"
+    local dest="$2"
+    local expected_sha256="$3"
+    local label="$4"
+
+    echo "  Downloading ${label}..."
+    if ! curl -fsSL --connect-timeout 60 --max-time 300 "${url}" -o "${dest}"; then
+        echo "  ERROR: Failed to download ${label}" >&2
+        return 1
+    fi
+
+    local actual_sha256
+    actual_sha256=$(sha256sum "${dest}" | awk '{print $1}')
+    if [ "${actual_sha256}" != "${expected_sha256}" ]; then
+        echo "  ERROR: sha256 mismatch for ${label}" >&2
+        echo "    expected: ${expected_sha256}" >&2
+        echo "    actual:   ${actual_sha256}" >&2
+        rm -f "${dest}"
+        return 1
+    fi
+
+    echo "  OK: ${label} sha256 verified"
+    return 0
+}
+
+mkdir -p "${DATA_DIR}"
+
+if [ ! -f "${DATA_DIR}/mimic_labevents.csv" ]; then
+    fetch_and_verify \
+        "${MIMIC_BASE}/LABEVENTS.csv" \
+        "${DATA_DIR}/mimic_labevents.csv" \
+        "${LABEVENTS_SHA256}" \
+        "MIMIC-III LABEVENTS.csv"
+else
+    echo "  mimic_labevents.csv already present, skipping download"
+fi
+
+if [ ! -f "${DATA_DIR}/mimic_labitems.csv" ]; then
+    fetch_and_verify \
+        "${MIMIC_BASE}/D_LABITEMS.csv" \
+        "${DATA_DIR}/mimic_labitems.csv" \
+        "${LABITEMS_SHA256}" \
+        "MIMIC-III D_LABITEMS.csv"
+else
+    echo "  mimic_labitems.csv already present, skipping download"
+fi
+
+echo "MIMIC-III Demo CSVs ready in ${DATA_DIR}"
+
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 

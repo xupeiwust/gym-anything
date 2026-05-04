@@ -102,18 +102,16 @@ echo "Downloading San Francisco UrbanSim dataset..."
 mkdir -p /opt/urbansim_data
 cd /opt/urbansim_data
 
-# Download the official SF HDF5 dataset
-wget -q -O sanfran_public.h5 \
-    "https://github.com/UDST/sanfran_urbansim/raw/master/data/sanfran_public.h5" || {
-    echo "WARNING: Could not download SF data from GitHub, trying alternative..."
-    # Alternative: clone just the data
-    apt-get install -y git-lfs 2>/dev/null || true
-    git clone --depth 1 https://github.com/UDST/sanfran_urbansim.git /tmp/sanfran_urbansim 2>/dev/null || true
-    if [ -f /tmp/sanfran_urbansim/data/sanfran_public.h5 ]; then
-        cp /tmp/sanfran_urbansim/data/sanfran_public.h5 /opt/urbansim_data/
-    fi
-    rm -rf /tmp/sanfran_urbansim
-}
+# Download the official SF HDF5 dataset with sha256 verification
+SF_URL="https://github.com/UDST/sanfran_urbansim/raw/master/data/sanfran_public.h5"
+SF_SHA256="08dc1bfc9446d257a45fa15e1de12c8f014b266edeefa510147cd91f295512e4"
+if [ -f sanfran_public.h5 ] && echo "${SF_SHA256}  sanfran_public.h5" | sha256sum -c - >/dev/null 2>&1; then
+    echo "sanfran_public.h5 already present and verified"
+else
+    curl -fsSL --retry 3 --retry-delay 5 --max-time 600 -o sanfran_public.h5.tmp "$SF_URL"
+    echo "${SF_SHA256}  sanfran_public.h5.tmp" | sha256sum -c -
+    mv sanfran_public.h5.tmp sanfran_public.h5
+fi
 
 # Download zone boundaries GeoJSON
 wget -q -O zones.json \

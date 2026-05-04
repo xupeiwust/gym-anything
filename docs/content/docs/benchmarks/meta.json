@@ -3,6 +3,7 @@
   "icon": "ChartBar",
   "pages": [
     "index",
-    "tasks-verifiers"
+    "tasks-verifiers",
+    "manual-data-downloads"
   ]
 }

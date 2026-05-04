@@ -64,18 +64,28 @@ echo "ABRAVIBE toolbox installed to $ABRAVIBE_DIR"
 
 # =====================================================================
 # Install CWRU bearing dataset (real vibration data)
+# Source: Case Western Reserve University Bearing Data Center
+#   https://engineering.case.edu/bearingdatacenter/download-data-file
 # =====================================================================
 echo "=== Installing CWRU bearing dataset ==="
 
 DATA_DIR="/home/ga/Documents/cwru_data"
 mkdir -p "$DATA_DIR"
 
-# Copy CWRU bearing .mat files from mounted data
-cp /workspace/data/normal_97.mat "$DATA_DIR/"
-cp /workspace/data/ir007_105.mat "$DATA_DIR/"
-cp /workspace/data/ball007_118.mat "$DATA_DIR/"
-cp /workspace/data/or007_130.mat "$DATA_DIR/"
-cp /workspace/data/ir021_209.mat "$DATA_DIR/"
+CWRU_BASE="https://engineering.case.edu/sites/default/files"
+fetch_cwru() {
+    local local_name="$1" remote_id="$2" expected_sha="$3"
+    curl -fsSL --retry 3 --retry-delay 5 --max-time 300 \
+        -o "$DATA_DIR/${local_name}.mat" \
+        "${CWRU_BASE}/${remote_id}.mat"
+    echo "${expected_sha}  $DATA_DIR/${local_name}.mat" | sha256sum -c -
+}
+
+fetch_cwru normal_97   97  16bf48babcf1c7ac224bc1a81cd9eafdb27e42d5cf559761907e067e8eeadf3c
+fetch_cwru ir007_105  105  f80b0ea04fd06b372a0eaec7c056543ea37e4bb4727a5b173d2a5bacd2aa9cab
+fetch_cwru ball007_118 118 b00628f8dd8d1d930af77fa465d1e5cdb385fe259489053f91f3680bda7f640e
+fetch_cwru or007_130  130  35a095307d0971477049b343a1b5981dde465a58fb7f233ad89b035068c1717d
+fetch_cwru ir021_209  209  9f723d6d9d2eba714c6dc50f99321dffa73d8b1e4d3605675b2c2251511eff80
 
 chown -R ga:ga /home/ga/Documents
 

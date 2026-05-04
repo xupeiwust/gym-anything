@@ -37,31 +37,8 @@ try {
         $sketchupDownloaded = $true
     }
 
-    # Fall back to download if no local copy
     if (-not $sketchupDownloaded) {
-        Write-Host "No local installer found, downloading..."
-        $sketchupUrls = @(
-            "https://archive.org/download/sketchupmake-2017-2-2555-90782-en-x64/sketchupmake-2017-2-2555-90782-en-x64.exe",
-            "https://archive.org/download/sketchupmake2017/SketchUpMake-2017-2-2555-90782-en-x64.exe"
-        )
-
-        foreach ($url in $sketchupUrls) {
-            try {
-                Write-Host "Trying SketchUp download: $url"
-                Invoke-WebRequest -Uri $url -OutFile $sketchupInstaller -UseBasicParsing -TimeoutSec 600
-                if ((Test-Path $sketchupInstaller) -and (Get-Item $sketchupInstaller).Length -gt 10MB) {
-                    Write-Host "SketchUp downloaded ($([math]::Round((Get-Item $sketchupInstaller).Length/1MB,1)) MB)"
-                    $sketchupDownloaded = $true
-                    break
-                }
-            } catch {
-                Write-Host "Failed from $url : $($_.Exception.Message)"
-            }
-        }
-    }
-
-    if (-not $sketchupDownloaded) {
-        throw "ERROR: Could not obtain SketchUp Make 2017."
+        throw "ERROR: SketchUpMake2017.exe not found at $localCopy. Run scripts/fetch_data.sh on the host before starting the env."
     }
 
     Write-Host "--- Installing SketchUp Make 2017 silently ---"

@@ -73,8 +73,10 @@ wget -q "${EXAMPLES_BASE}/Chute%20release.ork" -O "$ROCKETS_DIR/chute_release.or
 
 # Real university team rockets (from RocketPy-Team/RocketSerializer)
 ROCKETPY_BASE="https://raw.githubusercontent.com/RocketPy-Team/RocketSerializer/master/examples"
-wget -q "${ROCKETPY_BASE}/EPFL--BellaLui--2020/rocket.ork" -O "$ROCKETS_DIR/EPFL_BellaLui_2020.ork" || true
-wget -q "${ROCKETPY_BASE}/NDRT--Rocket--2020/rocket.ork" -O "$ROCKETS_DIR/NDRT_Rocket_2020.ork" || true
+wget -q "${ROCKETPY_BASE}/EPFL--BellaLui--2020/rocket.ork" -O "$ROCKETS_DIR/EPFL_BellaLui_2020.ork" \
+  && echo "bd3f72a6c26d766a13d6b816981369e18844e8711dc3e185840589ea11809bca  $ROCKETS_DIR/EPFL_BellaLui_2020.ork" | sha256sum -c -
+wget -q "${ROCKETPY_BASE}/NDRT--Rocket--2020/rocket.ork" -O "$ROCKETS_DIR/NDRT_Rocket_2020.ork" \
+  && echo "48eff7e05ca9cb1ca32a09496f153395cdd0bf755e3fd53e570bf154fb31b269  $ROCKETS_DIR/NDRT_Rocket_2020.ork" | sha256sum -c -
 wget -q "${ROCKETPY_BASE}/ProjetoJupiter--Valetudo--2019/rocket.ork" -O "$ROCKETS_DIR/ProjetoJupiter_Valetudo_2019.ork" || true
 
 # 3D-printable rocket designs
