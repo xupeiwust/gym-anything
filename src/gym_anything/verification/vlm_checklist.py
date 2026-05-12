@@ -24,10 +24,10 @@ class VLMChecklistConfig:
     temperature: float = 0.1
     top_p: float = 0.95
     max_tokens: int = 8192
-    max_frames: int = 24
+    max_frames: int = -1
     frame_strategy: str = "legacy_every_third"
-    completion_threshold: float = 80.0
-    integrity_threshold: float = 0.75
+    completion_threshold: float = 100.0
+    integrity_threshold: float = 1.0
     timeout: Optional[int] = None
 
     @classmethod

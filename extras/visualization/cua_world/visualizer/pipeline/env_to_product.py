@@ -57,7 +57,6 @@ MANUAL_OVERRIDES: Dict[str, str] = {
     "free_scout_env": "FreeScout",
     "tcl_tk_env": "Tcl/Tk",
     "ninja_trader_env": "NinjaTrader",
-    "active_inspire_env": "ActivInspire",
     "active_inspire_windows_env": "ActivInspire",
     "diagrams_net_env": "Diagrams.net Desktop",
     "tiddly_wiki_env": "TiddlyWiki",
