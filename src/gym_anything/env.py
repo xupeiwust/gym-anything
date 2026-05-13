@@ -324,6 +324,20 @@ class GymAnythingEnv:
         self._session_info = None
         self._ensure_episode_dir()
 
+        # Resolve cache_level="default" → env-spec value (fallback "pre_start").
+        # When in default mode, OR the env's default_use_savevm onto the
+        # caller's flag so QEMU envs that benefit from savevm get it
+        # automatically without the user having to pass --use-savevm.
+        if cache_level == "default":
+            resolved = getattr(self.env_spec, "default_cache_level", None) or "pre_start"
+            cache_level = resolved
+            if getattr(self.env_spec, "default_use_savevm", False):
+                use_savevm = True
+            logger.info(
+                "cache_level='default' → resolved to '%s'%s for env %s",
+                cache_level, " with savevm" if use_savevm else "", self.env_spec.id,
+            )
+
         if use_cache and not self._runner.supports_checkpoint_caching():
             raise ValueError(
                 f"Runner {type(self._runner).__name__} does not support checkpoint caching"

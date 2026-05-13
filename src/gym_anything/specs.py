@@ -283,6 +283,11 @@ class EnvSpec:
     supports_save_restore: Optional[str] = None  # snapshot | none | custom
     save_paths: Optional[List[str]] = None  # paths inside container to include in snapshot
 
+    # Per-env caching defaults consulted when reset() is called with
+    # cache_level="default". Unset → universal fallback (pre_start, no savevm).
+    default_cache_level: Optional[str] = None  # "pre_start" | "post_start" | "post_task"
+    default_use_savevm: bool = False
+
     # Security & Recording
     security: SecuritySpec = field(default_factory=SecuritySpec)
     recording: RecordingSpec = field(default_factory=RecordingSpec)
@@ -396,6 +401,8 @@ class EnvSpec:
             deterministic=d.get("deterministic"),
             supports_save_restore=d.get("supports_save_restore"),
             save_paths=d.get("save_paths"),
+            default_cache_level=d.get("default_cache_level"),
+            default_use_savevm=bool(d.get("default_use_savevm", False)),
             security=security,
             recording=recording,
             vnc=vnc,

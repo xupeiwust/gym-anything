@@ -43,6 +43,12 @@ To run across many tasks at once:
 gym-anything benchmark moodle --agent ClaudeAgent --model claude-opus-4-6 --split test
 ```
 
+Recommended: To run with default caching for the software, which is much faster for subsequent runs:
+
+```bash
+gym-anything benchmark moodle --task enroll_student --agent ClaudeAgent --model claude-opus-4-6 --use-cache --cache-level default
+```
+
 ## Three Independent Components
 
 The framework is built around three parts that connect through shared contracts but can each be used or replaced independently:
